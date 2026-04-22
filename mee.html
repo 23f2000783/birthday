@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Hey Mansi 🎨</title>
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Caveat:wght@400;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:16px}
+body{
+  width:100vw;height:100vh;overflow:hidden;
+  background:#111;
+  font-family:'DM Sans',sans-serif;font-weight:300;
+  color:#1a0a2e;touch-action:manipulation;
+}
+
+/* ── SCREENS ── */
+.screen{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:22px 20px;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.4s ease,transform 0.4s cubic-bezier(0.22,1,0.36,1);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  transform:translateY(18px) scale(0.97);
+}
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}
+.screen.out{opacity:0;transform:translateY(-18px) scale(1.03);pointer-events:none}
+
+/* ── DOT NAV ── */
+#dots{
+  position:fixed;bottom:16px;left:50%;transform:translateX(-50%);
+  display:flex;gap:5px;z-index:300;opacity:0;transition:opacity 0.4s;
+}
+#dots.show{opacity:1}
+.d{
+  width:5px;height:5px;border-radius:50%;
+  background:rgba(255,255,255,0.2);
+  transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+.d.cur{width:18px;border-radius:3px;background:#fff}
+.d.past{background:rgba(255,255,255,0.55)}
+
+/* ════════════════════════
+   S1 — OPENING
+════════════════════════ */
+#s1{background:#111;text-align:center}
+
+.s1-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+/* paint splash circles */
+.splash{
+  position:absolute;border-radius:50%;
+  filter:blur(60px);opacity:0;
+  animation:splashIn 1.2s ease forwards;
+}
+@keyframes splashIn{to{opacity:var(--op)}}
+
+.s1-inner{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;
+  align-items:center;gap:16px;width:100%;
+}
+
+/* Big canvas tear visual */
+.canvas-tear{
+  width:120px;height:120px;position:relative;
+  margin-bottom:4px;
+}
+.canvas-frame{
+  width:100%;height:100%;
+  border:3px solid rgba(255,255,255,0.12);
+  border-radius:8px;
+  background:rgba(255,255,255,0.04);
+  display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;
+  animation:canvasFloat 4s ease-in-out infinite;
+}
+@keyframes canvasFloat{
+  0%,100%{transform:rotate(-1.5deg) translateY(0)}
+  50%{transform:rotate(1.5deg) translateY(-8px)}
+}
+.canvas-frame::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,
+    rgba(255,107,107,0.15) 0%,
+    rgba(255,217,61,0.1) 35%,
+    rgba(91,164,245,0.12) 70%,
+    rgba(192,132,252,0.1) 100%);
+}
+.paint-strokes{
+  font-size:3.2rem;position:relative;z-index:1;
+  animation:strokeSpin 6s linear infinite;
+}
+@keyframes strokeSpin{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+
+/* corner dots on canvas frame */
+.canvas-frame .corner{
+  position:absolute;width:8px;height:8px;
+  background:rgba(255,255,255,0.3);border-radius:50%;
+}
+.corner.tl{top:6px;left:6px}
+.corner.tr{top:6px;right:6px}
+.corner.bl{bottom:6px;left:6px}
+.corner.br{bottom:6px;right:6px}
+
+.s1-from{
+  font-size:0.65rem;letter-spacing:0.45em;text-transform:uppercase;
+  color:rgba(255,255,255,0.3);
+}
+.s1-headline{
+  font-family:'Abril Fatface',serif;
+  font-size:clamp(2.6rem,12vw,4.5rem);
+  color:#fff;line-height:0.88;letter-spacing:-0.02em;
+}
+.s1-headline .painted{
+  display:block;
+  background:linear-gradient(100deg,#ff6b6b,#ffd93d,#5ba4f5);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;background-size:200%;
+  animation:gradPan 4s linear infinite;
+}
+@keyframes gradPan{0%{background-position:0%}100%{background-position:200%}}
+
+.s1-sub{
+  font-family:'Caveat',cursive;font-size:1.15rem;
+  color:rgba(255,255,255,0.45);line-height:1.7;
+}
+.s1-sub em{color:rgba(255,255,255,0.7);font-style:normal}
+
+.open-btn{
+  background:#fff;color:#111;border:none;
+  font-family:'Caveat',cursive;font-size:1.35rem;font-weight:700;
+  padding:14px 42px;border-radius:100px;
+  -webkit-appearance:none;cursor:pointer;
+  box-shadow:0 0 0 0 rgba(255,255,255,0.3);
+  animation:ringPulse 2.5s ease-in-out infinite;
+  transition:transform 0.15s;margin-top:4px;
+}
+.open-btn:active{transform:scale(0.95)}
+@keyframes ringPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.3)}
+  50%{box-shadow:0 0 0 12px rgba(255,255,255,0)}
+}
+.s1-tiny{font-size:0.68rem;color:rgba(255,255,255,0.18);letter-spacing:0.1em;margin-top:2px}
+
+/* ════════════════════════
+   S2 — QUIZ INTRO
+════════════════════════ */
+#s2{background:linear-gradient(155deg,#f8f4ff,#f0e8ff);text-align:center;gap:18px}
+.s2-emoji{font-size:3.2rem;animation:waggle 0.8s ease-in-out infinite alternate}
+@keyframes waggle{from{transform:rotate(-10deg)}to{transform:rotate(10deg)}}
+.s2-title{
+  font-family:'Abril Fatface',serif;
+  font-size:clamp(1.9rem,8.5vw,3rem);line-height:1.05;
+}
+.s2-title .acc{color:#7c3aed}
+.s2-body{
+  font-family:'Caveat',cursive;font-size:1.15rem;
+  color:#888;line-height:1.8;max-width:290px;
+}
+.dark-btn{
+  background:#1a0a2e;color:#fff;border:none;
+  font-family:'Caveat',cursive;font-size:1.3rem;font-weight:700;
+  padding:14px 42px;border-radius:100px;
+  -webkit-appearance:none;cursor:pointer;
+  box-shadow:0 8px 24px rgba(26,10,46,0.2);
+  transition:transform 0.15s,box-shadow 0.15s;
+}
+.dark-btn:active{transform:scale(0.95)}
+
+/* ════════════════════════
+   QUIZ SCREENS
+════════════════════════ */
+.qs{
+  background:#fff;
+  padding:14px 18px;padding-top:46px;
+  justify-content:flex-start;gap:0;
+}
+.q-chip{
+  position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  font-family:'Caveat',cursive;font-size:0.88rem;color:#ccc;
+  background:#fff;border:1px solid #ece8f0;
+  border-radius:100px;padding:2px 14px;white-space:nowrap;
+}
+.q-card{
+  width:100%;max-width:420px;
+  display:flex;flex-direction:column;gap:15px;
+  text-align:center;padding-bottom:20px;
+}
+.q-ico{font-size:2.8rem;display:block;animation:popUp 0.5s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes popUp{from{transform:scale(0) rotate(-15deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.q-txt{
+  font-family:'Abril Fatface',serif;
+  font-size:clamp(1.25rem,5.5vw,1.75rem);
+  line-height:1.25;color:#1a0a2e;
+}
+.q-opts{display:flex;flex-direction:column;gap:9px;width:100%}
+.qo{
+  background:#fafafa;border:2px solid #ede8f5;
+  border-radius:14px;padding:13px 16px;
+  font-family:'Caveat',cursive;font-size:1.18rem;
+  color:#1a0a2e;text-align:left;
+  display:flex;align-items:center;gap:10px;
+  -webkit-appearance:none;cursor:pointer;width:100%;
+  transition:all 0.15s ease;
+}
+.qo:active{transform:scale(0.97)}
+.qo.chosen{background:#1a0a2e;border-color:#1a0a2e;color:#fff}
+.qo.gone{display:none}
+
+.q-resp{
+  background:linear-gradient(135deg,#1a0a2e,#2e1065);
+  color:#fff;border-radius:16px;padding:16px 18px;
+  font-family:'Caveat',cursive;font-size:1.12rem;line-height:1.65;
+  text-align:center;display:none;
+  animation:respPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes respPop{from{transform:scale(0.82);opacity:0}to{transform:scale(1);opacity:1}}
+.q-resp.on{display:block}
+.q-resp .ri{font-size:1.7rem;display:block;margin-bottom:5px}
+.tap-cue{
+  margin-top:9px;font-size:0.82rem;opacity:0;
+  animation:cueIn 0.5s ease 0.5s forwards;
+}
+@keyframes cueIn{to{opacity:0.5}}
+
+/* ════════════════════════
+   TRAIT TILES
+════════════════════════ */
+#sTraits{
+  background:linear-gradient(165deg,#0d0820,#1a0a2e);
+  padding:18px 14px;padding-top:44px;
+  justify-content:flex-start;gap:0;
+}
+.tr-head{text-align:center;margin-bottom:16px;width:100%}
+.tr-head h2{
+  font-family:'Abril Fatface',serif;
+  font-size:clamp(1.7rem,7.5vw,2.6rem);
+  color:#fff;line-height:1.05;
+}
+.tr-head h2 em{
+  font-style:normal;
+  background:linear-gradient(90deg,#ff8fab,#ffd93d);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.tr-head p{font-family:'Caveat',cursive;font-size:1rem;color:rgba(255,255,255,0.35);margin-top:3px}
+
+.tile-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:9px;width:100%;max-width:400px;
+  padding-bottom:68px;
+}
+.tile{
+  border-radius:16px;padding:16px 12px;
+  text-align:center;cursor:pointer;
+  border:1.5px solid rgba(255,255,255,0.07);
+  background:rgba(255,255,255,0.035);
+  transition:all 0.22s ease;
+  position:relative;overflow:hidden;
+}
+.tile:active{transform:scale(0.95)}
+.tile.lit{
+  background:rgba(255,255,255,0.09);
+  border-color:rgba(255,255,255,0.22);
+}
+.tile.lit::before{
+  content:'';position:absolute;inset:0;
+  background:var(--tc,rgba(255,107,107,0.08));
+  border-radius:16px;
+}
+.tile .ti{font-size:2rem;display:block;margin-bottom:7px;position:relative;z-index:1}
+.tile .tl{
+  font-family:'Caveat',cursive;font-size:1rem;font-weight:700;
+  color:rgba(255,255,255,0.75);line-height:1.3;position:relative;z-index:1;
+}
+.tile .td{
+  font-family:'Caveat',cursive;font-size:0.85rem;
+  color:rgba(255,255,255,0.4);margin-top:5px;line-height:1.4;
+  display:none;position:relative;z-index:1;
+}
+.tile.lit .td{display:block;animation:tdIn 0.3s ease}
+@keyframes tdIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+.tr-cta{
+  position:fixed;bottom:36px;left:50%;transform:translateX(-50%);
+  background:linear-gradient(120deg,#7c3aed,#5ba4f5);
+  color:#fff;border:none;
+  font-family:'Caveat',cursive;font-size:1.25rem;font-weight:700;
+  padding:13px 40px;border-radius:100px;
+  box-shadow:0 8px 28px rgba(124,58,237,0.4);
+  -webkit-appearance:none;cursor:pointer;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.35s ease,transform 0.15s;
+  z-index:50;white-space:nowrap;
+}
+.tr-cta.show{opacity:1;pointer-events:all}
+.tr-cta:active{transform:scale(0.95) translateX(-50%)}
+
+/* ════════════════════════
+   LETTER
+════════════════════════ */
+#sLetter{
+  background:linear-gradient(160deg,#0d0820,#111);
+  padding:18px;justify-content:flex-start;padding-top:28px;
+}
+.ltr-paper{
+  background:#fdfaf5;border-radius:18px;
+  padding:24px 20px;
+  width:100%;max-width:400px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  position:relative;
+}
+.ltr-paper::after{
+  content:'';position:absolute;
+  top:0;left:36px;right:36px;height:2px;
+  background:linear-gradient(90deg,transparent,#7c3aed,transparent);
+  border-radius:2px;
+}
+.ltr-date{font-size:0.65rem;letter-spacing:0.28em;text-transform:uppercase;color:#ccc;margin-bottom:12px}
+.ltr-hey{
+  font-family:'Abril Fatface',serif;
+  font-size:1.65rem;color:#1a0a2e;display:block;margin-bottom:12px;
+}
+#ltrBody{
+  font-family:'Caveat',cursive;font-size:1.08rem;
+  line-height:2;color:#555;min-height:80px;
+}
+.ltr-blink{
+  display:inline-block;width:2px;height:1em;
+  background:#7c3aed;vertical-align:text-bottom;
+  animation:blink 0.7s step-end infinite;margin-left:1px;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.ltr-footer{
+  display:none;
+  margin-top:18px;padding-top:14px;
+  border-top:1px solid #f0ebe0;
+  font-family:'Caveat',cursive;font-size:1rem;
+  color:#aaa;text-align:right;line-height:1.6;
+}
+.ltr-footer strong{display:block;font-size:1.25rem;color:#1a0a2e;margin-top:2px}
+.ltr-go{
+  display:none;width:100%;margin-top:14px;
+  background:#1a0a2e;color:#fff;border:none;
+  border-radius:100px;padding:13px;
+  font-family:'Caveat',cursive;font-size:1.22rem;font-weight:700;
+  -webkit-appearance:none;cursor:pointer;
+}
+.skip-ltr{
+  position:fixed;bottom:14px;right:14px;
+  background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.35);
+  border:none;border-radius:100px;padding:5px 14px;
+  font-family:'Caveat',cursive;font-size:0.88rem;
+  -webkit-appearance:none;cursor:pointer;
+  backdrop-filter:blur(4px);z-index:100;
+}
+
+/* ════════════════════════
+   FINALE
+════════════════════════ */
+#sFinale{
+  background:#0d0820;overflow:hidden;text-align:center;
+}
+.fn-glow{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 30% 30%, rgba(255,107,107,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 70%, rgba(91,164,245,0.1) 0%, transparent 55%);
+}
+.fn-inner{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;
+  align-items:center;gap:14px;width:100%;
+}
+.fn-year{
+  font-size:0.65rem;letter-spacing:0.4em;text-transform:uppercase;
+  color:rgba(255,255,255,0.25);
+}
+.fn-hb{
+  font-family:'Abril Fatface',serif;
+  font-size:clamp(3.2rem,13vw,5.5rem);
+  color:#fff;line-height:0.85;letter-spacing:-0.03em;
+}
+.fn-hb .gr{
+  display:block;
+  background:linear-gradient(90deg,#ff6b6b,#ffd93d,#6bcb8a,#5ba4f5,#c084fc);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;background-size:300%;
+  animation:gShift 3.5s linear infinite;
+}
+@keyframes gShift{0%{background-position:0%}100%{background-position:300%}}
+.fn-name{
+  font-family:'Caveat',cursive;font-weight:700;
+  font-size:clamp(2.2rem,10vw,3.8rem);color:#fff;
+}
+.fn-bar{width:60px;height:1px;background:rgba(255,255,255,0.15)}
+.fn-wishes{
+  font-family:'Caveat',cursive;font-size:1.08rem;
+  color:rgba(255,255,255,0.5);line-height:1.95;max-width:270px;
+}
+.fn-wishes strong{color:#ffd93d}
+.fn-sig{
+  font-family:'Caveat',cursive;font-size:0.85rem;
+  color:rgba(255,255,255,0.2);letter-spacing:0.15em;
+  margin-top:2px;
+}
+/* No "with love" — just the name, matter of fact */
+.fn-sig span{color:rgba(255,255,255,0.45);font-size:0.95rem}
+.fn-replay{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);
+  color:rgba(255,255,255,0.4);
+  border-radius:100px;padding:9px 24px;
+  font-family:'Caveat',cursive;font-size:0.95rem;
+  -webkit-appearance:none;cursor:pointer;margin-top:4px;
+}
+
+/* confetti */
+.cf{
+  position:fixed;pointer-events:none;z-index:9999;
+  border-radius:var(--r);
+  animation:cfDrop var(--du) ease-in var(--de) forwards;
+}
+@keyframes cfDrop{
+  0%{transform:translate(0,0) rotate(0);opacity:1}
+  100%{transform:translate(var(--dx),110vh) rotate(var(--sp));opacity:0}
+}
+
+/* ── utils ── */
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.f1{animation:fu 0.55s ease both}
+.f2{animation:fu 0.55s 0.12s ease both}
+.f3{animation:fu 0.55s 0.24s ease both}
+.f4{animation:fu 0.55s 0.36s ease both}
+.f5{animation:fu 0.55s 0.48s ease both}
+</style>
+</head>
+<body>
+
+<!-- dots -->
+<div id="dots"></div>
+
+<!-- ══════════════════════════════
+     S1 — OPENING
+══════════════════════════════ -->
+<div class="screen active" id="s1">
+  <div class="s1-bg" id="s1bg"></div>
+  <div class="s1-inner">
+
+    <p class="s1-from f1">from nishant · april 23</p>
+
+    <!-- Canvas visual instead of envelope -->
+    <div class="canvas-tear f2">
+      <div class="canvas-frame">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+        <span class="paint-strokes">🎨</span>
+      </div>
+    </div>
+
+    <h1 class="s1-headline f3">
+      Hey,
+      <span class="painted">Mansi.</span>
+    </h1>
+
+    <p class="s1-sub f4">
+      Made you something.<br>
+      <em>Finally.</em> 😅
+    </p>
+
+    <button class="open-btn f5" onclick="goTo('s2')">Let's go →</button>
+    <p class="s1-tiny">a few taps · totally worth it</p>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     S2 — QUIZ INTRO
+══════════════════════════════ -->
+<div class="screen" id="s2">
+  <span class="s2-emoji f1">🤨</span>
+  <h2 class="s2-title f2">Think Nishant<br><span class="acc">knows you?</span></h2>
+  <p class="s2-body f3">5 questions. No wrong answers. But we'll see how well you actually know yourself 👀</p>
+  <button class="dark-btn f4" onclick="goTo('sq1')">Alright, go on 🎯</button>
+</div>
+
+<!-- ══════════════════════════════
+     Q1 — DOGS
+══════════════════════════════ -->
+<div class="screen qs" id="sq1">
+  <div class="q-chip">1 of 5 · the important stuff first 🐾</div>
+  <div class="q-card">
+    <span class="q-ico">🐶</span>
+    <p class="q-txt">Random dog on the street. Be honest — what happens next?</p>
+    <div class="q-opts">
+      <button class="qo" onclick="ans(this,'sq1','r1a','sq2')"><span>🛑</span>Everything stops. Plans cancelled. Dog first.</button>
+      <button class="qo" onclick="ans(this,'sq1','r1b','sq2')"><span>📸</span>Phone out immediately. Gotta capture this.</button>
+      <button class="qo" onclick="ans(this,'sq1','r1c','sq2')"><span>🚶</span>I'm already walking towards it. No decision made.</button>
+    </div>
+    <div class="q-resp" id="r1a">
+      <span class="ri">😭</span>
+      The plans never stood a chance. Dogs operate on a completely different priority system in your world and honestly that's the right way to live.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+    <div class="q-resp" id="r1b">
+      <span class="ri">📱</span>
+      The Insta brain activates before the legs even move. Content AND affection — simultaneously. Classic Mansi.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+    <div class="q-resp" id="r1c">
+      <span class="ri">🐕</span>
+      Pure instinct. Zero thought. The dog called on a frequency only you can hear. Completely believable.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q2 — INSTA -->
+<div class="screen qs" id="sq2">
+  <div class="q-chip">2 of 5 · be honest 📱</div>
+  <div class="q-card">
+    <span class="q-ico">📲</span>
+    <p class="q-txt">You post something. How long before you check the likes?</p>
+    <div class="q-opts">
+      <button class="qo" onclick="ans(this,'sq2','r2a','sq3')"><span>😌</span>I post and move on. Very chill person.</button>
+      <button class="qo" onclick="ans(this,'sq2','r2b','sq3')"><span>👀</span>Give it like... 3 minutes max</button>
+      <button class="qo" onclick="ans(this,'sq2','r2c','sq3')"><span>💀</span>The screen is already open again</button>
+    </div>
+    <div class="q-resp" id="r2a">
+      <span class="ri">🧐</span>
+      Sure. Very chill. The phone is just coincidentally in your hand and the app just happened to open itself. We believe you.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+    <div class="q-resp" id="r2b">
+      <span class="ri">⏱️</span>
+      3 minutes is generous. We both know it was more like 45 seconds. But fine, let's call it 3 minutes. Respectable.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+    <div class="q-resp" id="r2c">
+      <span class="ri">💅</span>
+      THE MOST honest answer in this entire quiz. Refreshing. Also completely correct. No judgment — your content deserves to be watched anyway.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q3 — FAMILY -->
+<div class="screen qs" id="sq3">
+  <div class="q-chip">3 of 5 · real talk 🏡</div>
+  <div class="q-card">
+    <span class="q-ico">👨‍👩‍👧</span>
+    <p class="q-txt">Family calls when you're in the middle of something. What actually happens?</p>
+    <div class="q-opts">
+      <button class="qo" onclick="ans(this,'sq3','r3a','sq4')"><span>📞</span>Pick up instantly. No question.</button>
+      <button class="qo" onclick="ans(this,'sq3','r3b','sq4')"><span>⏸️</span>Pause everything, call back in 2 mins</button>
+      <button class="qo" onclick="ans(this,'sq3','r3c','sq4')"><span>🤹</span>Pick up AND keep doing the thing</button>
+    </div>
+    <div class="q-resp" id="r3a">
+      <span class="ri">🥹</span>
+      Instant pick up — zero hesitation. That's just how you're built. And it says everything about the kind of person you actually are.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+    <div class="q-resp" id="r3b">
+      <span class="ri">💕</span>
+      2 minutes, not a second more. They're never really waiting when it comes to you. That quiet loyalty is genuinely one of your best things.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+    <div class="q-resp" id="r3c">
+      <span class="ri">🦸</span>
+      Full multitask mode — canvas in one hand, phone in the other, fully present for both. That's a skill honestly.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q4 — AMBITIONS -->
+<div class="screen qs" id="sq4">
+  <div class="q-chip">4 of 5 · this one matters 🚀</div>
+  <div class="q-card">
+    <span class="q-ico">🌟</span>
+    <p class="q-txt">Someone tells you to "be realistic" about your goals. Your internal reaction?</p>
+    <div class="q-opts">
+      <button class="qo" onclick="ans(this,'sq4','r4a','sq5')"><span>😤</span>Annoyed but I smile and carry on</button>
+      <button class="qo" onclick="ans(this,'sq4','r4b','sq5')"><span>🙏</span>God's got bigger plans anyway — I'm good</button>
+      <button class="qo" onclick="ans(this,'sq4','r4c','sq5')"><span>🤷</span>I genuinely don't register it</button>
+    </div>
+    <div class="q-resp" id="r4a">
+      <span class="ri">🔥</span>
+      That polite smile doing a lot of heavy lifting. Underneath it is just pure fuel. Let people talk — you've got things to build.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+    <div class="q-resp" id="r4b">
+      <span class="ri">✨</span>
+      And that's honestly the most unshakeable position to be in. When your trust is somewhere that can't be argued with — other people's doubts just don't land.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+    <div class="q-resp" id="r4c">
+      <span class="ri">💎</span>
+      Correct. Not dismissive — just laser focused. That kind of noise simply doesn't compute for someone who already knows where they're headed.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+  </div>
+</div>
+
+<!-- Q5 — ART + FAITH -->
+<div class="screen qs" id="sq5">
+  <div class="q-chip">5 of 5 · last one 🎨</div>
+  <div class="q-card">
+    <span class="q-ico">🖌️</span>
+    <p class="q-txt">A piece comes out exactly the way you imagined. First thought?</p>
+    <div class="q-opts">
+      <button class="qo" onclick="ans(this,'sq5','r5a','sTraits')"><span>🤲</span>Gratitude first — before anything else</button>
+      <button class="qo" onclick="ans(this,'sq5','r5b','sTraits')"><span>😳</span>Wait — did I actually just do that?</button>
+      <button class="qo" onclick="ans(this,'sq5','r5c','sTraits')"><span>📤</span>People need to see this right now</button>
+    </div>
+    <div class="q-resp" id="r5a">
+      <span class="ri">🌟</span>
+      That instinct to be grateful before anything else is exactly why the work keeps getting better. It stays grounded in something real.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+    <div class="q-resp" id="r5b">
+      <span class="ri">😂</span>
+      Self-surprise is genuinely the best sign — means the work came from somewhere deeper than just skill. The best artists still shock themselves.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+    <div class="q-resp" id="r5c">
+      <span class="ri">📱</span>
+      Absolutely valid. Sharing good art isn't ego — it's just not being selfish about something beautiful. Post it. Every time.
+      <div class="tap-cue">tap to continue →</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     TRAIT TILES
+══════════════════════════════ -->
+<div class="screen" id="sTraits">
+  <div class="tr-head f1">
+    <h2>Here's what<br>Nishant sees <em>in you</em></h2>
+    <p>Tap each one open ↓</p>
+  </div>
+  <div class="tile-grid">
+    <div class="tile" style="--tc:rgba(255,107,107,0.1)" onclick="tapTile(this)">
+      <span class="ti">🎨</span>
+      <div class="tl">The Artist</div>
+      <div class="td">You don't just make things that look good. You make things that feel like you — and that's the harder part that most people never figure out.</div>
+    </div>
+    <div class="tile" style="--tc:rgba(251,191,36,0.1)" onclick="tapTile(this)">
+      <span class="ti">🐶</span>
+      <div class="tl">Dog Person<br>No. 1</div>
+      <div class="td">Every dog is safer because you exist. It's a personality trait at this point — and a genuinely good one.</div>
+    </div>
+    <div class="tile" style="--tc:rgba(91,164,245,0.1)" onclick="tapTile(this)">
+      <span class="ti">📸</span>
+      <div class="tl">The Eye</div>
+      <div class="td">The Insta thing isn't just a habit — you genuinely see light and moments differently. That's not taught, that's just you.</div>
+    </div>
+    <div class="tile" style="--tc:rgba(107,203,138,0.1)" onclick="tapTile(this)">
+      <span class="ti">👨‍👩‍👧</span>
+      <div class="tl">Family First</div>
+      <div class="td">That love is your foundation. The way you show up for people who matter to you — quietly, consistently — that stuff is rare.</div>
+    </div>
+    <div class="tile" style="--tc:rgba(192,132,252,0.1)" onclick="tapTile(this)">
+      <span class="ti">🌙</span>
+      <div class="tl">Thinks Big</div>
+      <div class="td">Your ambitions aren't unrealistic. They're just sized for someone who actually intends to do them. Keep that energy exactly as it is.</div>
+    </div>
+    <div class="tile" style="--tc:rgba(245,200,66,0.1)" onclick="tapTile(this)">
+      <span class="ti">🤲</span>
+      <div class="tl">The Faith</div>
+      <div class="td">That certainty you carry — even when things are unclear — is not common. It's what makes you hard to shake. Hold onto it.</div>
+    </div>
+  </div>
+  <button class="tr-cta" id="trCta" onclick="goTo('sLetter')">Now read this 👇</button>
+</div>
+
+<!-- ══════════════════════════════
+     LETTER
+══════════════════════════════ -->
+<div class="screen" id="sLetter">
+  <div class="ltr-paper">
+    <div class="ltr-date">April 23, 2026 · from Nishant</div>
+    <span class="ltr-hey">Mansi,</span>
+    <div id="ltrBody"><span class="ltr-blink"></span></div>
+    <div class="ltr-footer" id="ltrFoot">
+      — Nishant
+      <strong>Happy Birthday. Go have a good one. 🎉</strong>
+    </div>
+    <button class="ltr-go" id="ltrGo" onclick="goTo('sFinale')">See the finale 🎊</button>
+  </div>
+  <button class="skip-ltr" onclick="skipLtr()">skip →</button>
+</div>
+
+<!-- ══════════════════════════════
+     FINALE
+══════════════════════════════ -->
+<div class="screen" id="sFinale">
+  <div class="fn-glow"></div>
+  <div class="fn-inner">
+    <p class="fn-year">April 23, 2026</p>
+    <div class="fn-hb">
+      Happy
+      <span class="gr">Birthday</span>
+    </div>
+    <div class="fn-name">Mansi. 🎨</div>
+    <div class="fn-bar"></div>
+    <p class="fn-wishes">
+      May the art keep coming.<br>
+      The dogs keep finding you.<br>
+      The family stay close.<br>
+      The ambitions get louder.<br>
+      And may <strong>what you believe in</strong><br>
+      keep proving itself right. 🤲
+    </p>
+    <!-- Clean sign-off. No "with love". Just real. -->
+    <p class="fn-sig">— <span>Nishant</span></p>
+    <button class="fn-replay" onclick="restart()">↩ start over</button>
+  </div>
+</div>
+
+<script>
+/* ── PAINT SPLASHES ON S1 ── */
+(()=>{
+  const bg=document.getElementById('s1bg');
+  const cols=['rgba(255,107,107,VAR)','rgba(255,217,61,VAR)','rgba(91,164,245,VAR)','rgba(192,132,252,VAR)','rgba(107,203,138,VAR)'];
+  const positions=[
+    {t:'-10%',l:'-10%'},{t:'-5%',r:'-5%'},{b:'10%',l:'5%'},
+    {b:'-5%',r:'10%'},{t:'40%',l:'35%'}
+  ];
+  cols.forEach((c,i)=>{
+    const el=document.createElement('div');
+    el.className='splash';
+    const op=(0.12+Math.random()*0.1).toFixed(2);
+    const sz=180+Math.random()*140;
+    const pos=positions[i];
+    let ps='';
+    for(const k in pos)ps+=`${k}:${pos[k]};`;
+    el.style.cssText=`width:${sz}px;height:${sz}px;${ps}background:${c.replace('VAR',op)};animation-delay:${i*0.18}s;--op:${op}`;
+    bg.appendChild(el);
+  });
+})();
+
+/* ── DOTS ── */
+const SCREENS=['s1','s2','sq1','sq2','sq3','sq4','sq5','sTraits','sLetter','sFinale'];
+const dotsEl=document.getElementById('dots');
+SCREENS.forEach((_,i)=>{
+  const d=document.createElement('div');d.className='d';d.id='dd'+i;
+  dotsEl.appendChild(d);
+});
+function updateDots(id){
+  const idx=SCREENS.indexOf(id);
+  dotsEl.className=id==='s1'?'':'show';
+  SCREENS.forEach((_,i)=>{
+    document.getElementById('dd'+i).className='d'+(i===idx?' cur':i<idx?' past':'');
+  });
+}
+updateDots('s1');
+
+/* ── NAVIGATION ── */
+let cur='s1';
+function goTo(id){
+  if(id===cur)return;
+  const p=document.getElementById(cur);
+  const n=document.getElementById(id);
+  if(!n)return;
+  p.classList.remove('active');p.classList.add('out');
+  setTimeout(()=>p.classList.remove('out'),480);
+  n.classList.add('active');n.scrollTop=0;
+  cur=id;updateDots(id);
+  if(id==='sLetter')startLetter();
+  if(id==='sFinale')startFinale();
+}
+
+/* ── QUIZ ── */
+function ans(btn,sid,rid,nid){
+  const sc=document.getElementById(sid);
+  sc.querySelectorAll('.qo').forEach(b=>{
+    b.disabled=true;
+    if(b!==btn)b.classList.add('gone');
+    else b.classList.add('chosen');
+  });
+  document.getElementById(rid).classList.add('on');
+  setTimeout(()=>{
+    sc.addEventListener('click',function h(){sc.removeEventListener('click',h);goTo(nid)},600);
+  },500);
+}
+
+/* ── TILES ── */
+let tCount=0;
+function tapTile(el){
+  const wasLit=el.classList.contains('lit');
+  el.classList.toggle('lit');
+  tCount+=wasLit?-1:1;
+  document.getElementById('trCta').classList.toggle('show',tCount>=3);
+}
+
+/* ── LETTER ── */
+const ltrLines=[
+  "Happy birthday.\n\n",
+  "I'm not going to make this into a big thing — but I did want to say something real.\n\n",
+  "You're one of those people who actually does things. Not just talks about them. You make art. You show up for your family. You keep your faith even when it's inconvenient. You have ambitions that most people would quietly give up on.\n\n",
+  "That's not a small thing, Mansi. Most people don't have one of those qualities. You have all of them.\n\n",
+  "So — I hope this year is the one where it all starts moving. Where the work gets seen, the plans start landing, and you look back at April 23rd and think yeah, that was the year.\n\n",
+  "You've got the talent. You've got the belief. The rest will follow. 🌸"
+];
+let ltrT=null;
+function startLetter(){
+  const el=document.getElementById('ltrBody');
+  el.innerHTML='<span class="ltr-blink"></span>';
+  document.getElementById('ltrFoot').style.display='none';
+  document.getElementById('ltrGo').style.display='none';
+  const full=ltrLines.join('');
+  let i=0;
+  function type(){
+    if(i<full.length){
+      const ch=full[i];
+      el.innerHTML=full.slice(0,i+1).replace(/\n/g,'<br>')+'<span class="ltr-blink"></span>';
+      i++;
+      document.getElementById('sLetter').scrollTop=9999;
+      ltrT=setTimeout(type,ch==='\n'?150:ch==='.'||ch==='!'||ch==='?'?130:20);
+    } else {
+      el.innerHTML=full.replace(/\n/g,'<br>');
+      document.getElementById('ltrFoot').style.display='block';
+      document.getElementById('ltrGo').style.display='block';
+    }
+  }
+  setTimeout(type,280);
+}
+function skipLtr(){
+  if(ltrT)clearTimeout(ltrT);
+  document.getElementById('ltrBody').innerHTML=ltrLines.join('').replace(/\n/g,'<br>');
+  document.getElementById('ltrFoot').style.display='block';
+  document.getElementById('ltrGo').style.display='block';
+}
+
+/* ── CONFETTI ── */
+const CC=['#ff6b6b','#ffd93d','#6bcb8a','#5ba4f5','#ff8fab','#c084fc','#fff','#ff9a3c'];
+function confetti(n){
+  for(let i=0;i<n;i++){
+    const el=document.createElement('div');el.className='cf';
+    el.style.cssText=`
+      background:${CC[~~(Math.random()*CC.length)]};
+      left:${Math.random()*100}vw;top:-10px;
+      width:${5+Math.random()*8}px;height:${5+Math.random()*8}px;
+      --r:${Math.random()>.5?'2px':'50%'};
+      --dx:${(Math.random()-.5)*300}px;
+      --sp:${(Math.random()>.5?1:-1)*360*Math.ceil(Math.random()*3)}deg;
+      --du:${2+Math.random()*2.5}s;
+      --de:${Math.random()*1.2}s;
+    `;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),5500);
+  }
+}
+function startFinale(){confetti(65);setTimeout(()=>confetti(50),700);setTimeout(()=>confetti(35),1500)}
+
+/* ── RESTART ── */
+function restart(){
+  document.querySelectorAll('.qo').forEach(b=>{b.disabled=false;b.classList.remove('chosen','gone')});
+  document.querySelectorAll('.q-resp').forEach(r=>r.classList.remove('on'));
+  document.querySelectorAll('.tile').forEach(t=>t.classList.remove('lit'));
+  document.getElementById('trCta').classList.remove('show');
+  tCount=0;goTo('s1');
+}
+</script>
+</body>
+</html>
