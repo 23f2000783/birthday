@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Studio — for Mansi</title>
+<meta name="description" content="Three gentle things, made for Mansi. Take your time.">
+<meta name="theme-color" content="#F7F4EF">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0..100,0..1&family=Instrument+Sans:wght@400..600&family=Space+Mono:wght@400;700&display=swap">
+
+<!-- style.css supplies the shared tokens, fonts, grain, buttons and a11y floor -->
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="studio.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎨</text></svg>">
+</head>
+
+<body class="studio">
+
+<div class="grain" aria-hidden="true"></div>
+<canvas id="ambient" aria-hidden="true"></canvas>
+
+<!-- ══════════ THE ENTRANCE — doors part, pigment spills ══════════ -->
+<div class="entrance" id="entrance" aria-hidden="true">
+  <span class="entrance__panel entrance__panel--l"></span>
+  <span class="entrance__panel entrance__panel--r"></span>
+  <span class="entrance__spill"></span>
+</div>
+
+<noscript>
+  <div class="noscript">The Studio is three little games — it needs JavaScript to play.
+  <a href="index.html">Back to the canvas</a>.</div>
+</noscript>
+
+<main id="studioMain">
+
+  <!-- ══════════════════ VIEW · LANDING ══════════════════ -->
+  <section class="view view--landing is-active" id="viewLanding" aria-labelledby="studio-title">
+    <header class="landing__head">
+      <p class="margin-note" id="landingEyebrow">the studio · est. today</p>
+      <h1 class="landing__title" id="studio-title">Welcome to the studio.<br>Take your time.</h1>
+      <p class="landing__lead" id="landingLead">
+        Three small things. No scores, no timers, nothing to get wrong —
+        just rooms to wander through. Each one ends with something you can keep.
+      </p>
+    </header>
+
+    <ul class="easels" id="easels">
+      <!-- easels injected from GAMES config -->
+    </ul>
+
+    <footer class="landing__foot">
+      <a class="back-home" href="index.html">← back to the canvas</a>
+      <p class="margin-note" id="studioFooterNote">made for Mansi · with paint and pixels</p>
+    </footer>
+  </section>
+
+
+  <!-- ══════════════════ VIEW · 1 · RESTORATION ROOM ══════════════════ -->
+  <section class="view view--game" id="viewRestore" aria-labelledby="restore-title" hidden>
+    <div class="game__bar">
+      <button type="button" class="icon-btn" data-back aria-label="Back to the studio">
+        <span aria-hidden="true">←</span>
+      </button>
+      <h2 class="game__title" id="restore-title">Restoration Room</h2>
+      <span class="game__meter margin-note" id="restoreMeter" aria-live="off">0%</span>
+    </div>
+
+    <div class="game__stage">
+      <div class="restore-frame" id="restoreFrame">
+        <!-- bottom: the portrait · top: the dust she brushes away -->
+        <canvas id="restorePortrait" aria-hidden="true"></canvas>
+        <canvas id="restoreDust"
+                aria-label="A dusty canvas. Brush across it with your finger to clean it."
+                role="img" tabindex="0"></canvas>
+      </div>
+      <p class="restore-hint margin-note" id="restoreHint">brush the dust away</p>
+    </div>
+
+    <div class="game__foot">
+      <p class="game__line" id="restoreLine" aria-live="polite"></p>
+      <div class="game__actions" id="restoreActions" hidden>
+        <button type="button" class="btn btn--solid" data-save="restore">Save this</button>
+        <button type="button" class="btn btn--ghost" data-share="restore" hidden>Share</button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════ VIEW · 2 · COLOUR MIX LAB ══════════════════ -->
+  <section class="view view--game" id="viewMix" aria-labelledby="mix-title" hidden>
+    <div class="game__bar">
+      <button type="button" class="icon-btn" data-back aria-label="Back to the studio">
+        <span aria-hidden="true">←</span>
+      </button>
+      <h2 class="game__title" id="mix-title">Colour Mix Lab</h2>
+      <span class="game__meter margin-note" id="mixMeter">0/6</span>
+    </div>
+
+    <div class="game__stage mix__stage">
+      <div class="bowl-wrap">
+        <canvas id="mixBowl" role="img" aria-label="The mixing bowl."></canvas>
+        <p class="bowl-empty margin-note" id="bowlEmpty">tap two pigments</p>
+      </div>
+      <p class="mix__memory" id="mixMemory" aria-live="polite"></p>
+    </div>
+
+    <div class="game__foot mix__foot">
+      <div class="wells" id="wells" role="group" aria-label="Pigment wells"></div>
+      <div class="mix__controls">
+        <button type="button" class="btn btn--ghost btn--sm" id="rinseBowl">Rinse the bowl</button>
+        <div class="game__actions" id="mixActions" hidden>
+          <button type="button" class="btn btn--solid btn--sm" data-save="mix">Save palette</button>
+          <button type="button" class="btn btn--ghost btn--sm" data-share="mix" hidden>Share</button>
+        </div>
+      </div>
+      <ul class="palette-strip" id="paletteStrip" aria-label="Colours you've collected"></ul>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════ VIEW · 3 · PAINT-BY-SCROLL ══════════════════ -->
+  <section class="view view--game" id="viewPaint" aria-labelledby="paint-title" hidden>
+    <div class="game__bar">
+      <button type="button" class="icon-btn" data-back aria-label="Back to the studio">
+        <span aria-hidden="true">←</span>
+      </button>
+      <h2 class="game__title" id="paint-title">Paint-by-Scroll</h2>
+      <span class="game__meter margin-note" id="paintMeter">0/9</span>
+    </div>
+
+    <div class="game__stage paint__stage">
+      <!-- ═══════════════════════════════════════════════════════════════
+           SCENE_SWAP · The girl-and-dog artwork.
+           Replace everything inside <svg id="scene"> with your own art.
+           The ONLY contract: each part you want revealed separately must be a
+           <g data-region="N"> — studio.js reads their bounding boxes, builds the
+           wipe clip-paths, and orders the reveal by N. Keep the ids on the
+           animated bits (sceneTail / sceneGirl / sceneBall / sceneEars / sceneSun)
+           if you want the idle animation to keep working, or drop them safely.
+           Use presentation attributes (fill="…"), not CSS classes — the export
+           rasterises this SVG on its own, without the stylesheet.
+           ═══════════════════════════════════════════════════════════════ -->
+      <svg id="scene" viewBox="0 0 400 420" role="img"
+           aria-labelledby="sceneTitle" preserveAspectRatio="xMidYMid meet">
+        <title id="sceneTitle">A girl playing with her dog on a sunny hill.</title>
+
+        <!-- 1 · sky -->
+        <g data-region="1">
+          <rect x="0" y="0" width="400" height="420" fill="#FBF1DF"/>
+          <ellipse cx="80" cy="72" rx="46" ry="20" fill="#FFFFFF" opacity="0.72"/>
+          <ellipse cx="112" cy="64" rx="30" ry="16" fill="#FFFFFF" opacity="0.72"/>
+          <ellipse cx="300" cy="150" rx="38" ry="15" fill="#FFFFFF" opacity="0.5"/>
+        </g>
+
+        <!-- 2 · sun -->
+        <g data-region="2" id="sceneSun">
+          <g id="sceneRays" fill="none" stroke="#F2C14E" stroke-width="5" stroke-linecap="round" opacity="0.85">
+            <line x1="322" y1="18" x2="322" y2="34"/>
+            <line x1="376" y1="72" x2="392" y2="72"/>
+            <line x1="322" y1="110" x2="322" y2="126"/>
+            <line x1="252" y1="72" x2="268" y2="72"/>
+            <line x1="360" y1="34" x2="371" y2="23"/>
+            <line x1="360" y1="110" x2="371" y2="121"/>
+            <line x1="284" y1="110" x2="273" y2="121"/>
+            <line x1="284" y1="34" x2="273" y2="23"/>
+          </g>
+          <circle cx="322" cy="72" r="30" fill="#F2C14E"/>
+          <circle cx="313" cy="63" r="10" fill="#FFFFFF" opacity="0.32"/>
+        </g>
+
+        <!-- 3 · hill -->
+        <g data-region="3">
+          <path d="M0 336 C 70 314, 150 322, 210 330 C 275 339, 330 330, 400 312 L400 420 L0 420 Z" fill="#1F7A5A"/>
+          <path d="M0 358 C 90 344, 170 354, 250 350 C 310 347, 355 340, 400 332 L400 420 L0 420 Z" fill="#19664B"/>
+        </g>
+
+        <!-- 4 · tree -->
+        <g data-region="4">
+          <rect x="44" y="236" width="15" height="104" rx="7" fill="#7A5230"/>
+          <circle cx="52" cy="216" r="42" fill="#1F7A5A"/>
+          <circle cx="24" cy="242" r="28" fill="#19664B"/>
+          <circle cx="82" cy="244" r="26" fill="#19664B"/>
+          <circle cx="60" cy="192" r="24" fill="#2A8E6B"/>
+        </g>
+
+        <!-- 5 · dog body + legs -->
+        <g data-region="5">
+          <rect x="258" y="306" width="11" height="34" rx="5.5" fill="#D9A431"/>
+          <rect x="300" y="306" width="11" height="34" rx="5.5" fill="#D9A431"/>
+          <rect x="272" y="308" width="11" height="32" rx="5.5" fill="#F2C14E"/>
+          <rect x="292" y="308" width="11" height="32" rx="5.5" fill="#F2C14E"/>
+          <ellipse cx="285" cy="296" rx="38" ry="25" fill="#F2C14E"/>
+          <ellipse cx="296" cy="302" rx="20" ry="14" fill="#FFFFFF" opacity="0.28"/>
+        </g>
+
+        <!-- 6 · dog head, ears, tail -->
+        <g data-region="6">
+          <path id="sceneTail" d="M320 286 C 344 280, 352 258, 344 240"
+                fill="none" stroke="#F2C14E" stroke-width="11" stroke-linecap="round"/>
+          <circle cx="250" cy="276" r="23" fill="#F2C14E"/>
+          <g id="sceneEars">
+            <ellipse cx="236" cy="256" rx="9" ry="17" fill="#D9A431" transform="rotate(-24 236 256)"/>
+            <ellipse cx="266" cy="256" rx="9" ry="17" fill="#D9A431" transform="rotate(18 266 256)"/>
+          </g>
+          <ellipse cx="234" cy="286" rx="14" ry="11" fill="#F8DA9A"/>
+          <circle cx="224" cy="284" r="4.6" fill="#22201C"/>
+          <path d="M228 292 q 6 5 12 0" fill="none" stroke="#22201C" stroke-width="2.4" stroke-linecap="round"/>
+          <circle cx="244" cy="270" r="3.4" fill="#22201C"/>
+          <circle cx="262" cy="270" r="3.4" fill="#22201C"/>
+        </g>
+
+        <!-- 7 · girl · body, arms, legs -->
+        <g data-region="7">
+          <!-- legs, mid-skip -->
+          <path d="M143 290 L139 330" stroke="#E9C49B" stroke-width="12" stroke-linecap="round" fill="none"/>
+          <path d="M158 290 L170 326" stroke="#E9C49B" stroke-width="12" stroke-linecap="round" fill="none"/>
+          <ellipse cx="137" cy="335" rx="11" ry="6" fill="#22201C"/>
+          <ellipse cx="174" cy="331" rx="11" ry="6" fill="#22201C"/>
+          <!-- neck -->
+          <rect x="144" y="212" width="12" height="16" fill="#E9C49B"/>
+          <!-- dress -->
+          <path d="M134 224 L166 224 L178 296 L122 296 Z" fill="#E8552D"/>
+          <path d="M134 224 L166 224 L169 244 L131 244 Z" fill="#D3441F"/>
+          <!-- arms: one reaching up for the ball, one swinging back -->
+          <path d="M163 233 L191 199" stroke="#E9C49B" stroke-width="11" stroke-linecap="round" fill="none"/>
+          <path d="M137 233 L121 266" stroke="#E9C49B" stroke-width="11" stroke-linecap="round" fill="none"/>
+        </g>
+
+        <!-- 8 · girl · head + hair -->
+        <g data-region="8">
+          <!-- the bun sits behind her, not on her face -->
+          <circle cx="123" cy="190" r="13" fill="#3B3229"/>
+          <circle cx="120" cy="186" r="5.5" fill="#4A4036"/>
+          <circle cx="150" cy="200" r="23" fill="#E9C49B"/>
+          <path d="M127 198 C 127 174, 173 174, 173 198 C 173 186, 165 180, 150 180 C 135 180, 127 186, 127 198 Z" fill="#3B3229"/>
+          <path d="M128 195 C 123 213, 127 227, 133 233 C 127 217, 130 203, 132 195 Z" fill="#3B3229"/>
+          <circle cx="158" cy="201" r="3.2" fill="#22201C"/>
+          <circle cx="145" cy="201" r="3.2" fill="#22201C"/>
+          <path d="M146 211 q 7 6 14 -1" fill="none" stroke="#22201C" stroke-width="2.6" stroke-linecap="round"/>
+          <circle cx="137" cy="208" r="4.6" fill="#E8552D" opacity="0.3"/>
+          <circle cx="165" cy="207" r="4.6" fill="#E8552D" opacity="0.3"/>
+        </g>
+
+        <!-- 9 · the ball + a little sparkle -->
+        <g data-region="9">
+          <circle id="sceneBall" cx="206" cy="182" r="13" fill="#2B4A8B"/>
+          <circle cx="202" cy="177" r="4" fill="#FFFFFF" opacity="0.45"/>
+          <g fill="#E8552D" opacity="0.8">
+            <circle cx="196" cy="146" r="3.4"/>
+            <circle cx="224" cy="156" r="2.6"/>
+            <circle cx="186" cy="166" r="2.2"/>
+          </g>
+        </g>
+      </svg>
+      <!-- ══════════════════ end SCENE_SWAP ══════════════════ -->
+
+      <p class="paint__intro margin-note" id="paintIntro"></p>
+      <p class="paint__done" id="paintDone" aria-live="polite"></p>
+    </div>
+
+    <div class="game__foot paint__foot">
+      <div class="act" id="actStage" aria-live="polite"></div>
+      <div class="game__actions" id="paintActions" hidden>
+        <button type="button" class="btn btn--solid" data-save="paint">Save this</button>
+        <button type="button" class="btn btn--ghost" data-share="paint" hidden>Share</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- toast for save/share feedback -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+<script src="studio.js"></script>
+</body>
+</html>

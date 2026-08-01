@@ -1,195 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Happy Friendship Day 🦊</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>For Mansi — Happy Friendship Day</title>
+<meta name="description" content="A blank canvas that fills itself in as you scroll. Made for Mansi, with paint and pixels.">
+<meta name="theme-color" content="#F7F4EF">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="For Mansi — Happy Friendship Day">
+<meta property="og:description" content="You painted this whole page and didn't even notice.">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..700,0..100,0..1&family=Instrument+Sans:wght@400..600&family=Space+Mono:wght@400;700&display=swap">
+
 <link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎨</text></svg>">
 </head>
+
 <body>
 
-  <!-- floating ambient doodles -->
-  <div class="ambient" aria-hidden="true">
-    <span class="drift d1">🍃</span>
-    <span class="drift d2">✨</span>
-    <span class="drift d3">🎈</span>
-    <span class="drift d4">🌸</span>
-    <span class="drift d5">✨</span>
-    <span class="drift d6">🫧</span>
+<!-- Paper grain, fixed over everything -->
+<div class="grain" aria-hidden="true"></div>
+
+<!-- Ambient layer: brush-glow cursor trail + pigment confetti -->
+<canvas id="ambient" aria-hidden="true"></canvas>
+
+<a class="skip-link" href="#paint">Skip to the paint tool</a>
+
+<noscript>
+  <div class="noscript">
+    This page paints itself in as you scroll — it needs JavaScript enabled to do that.
+    <br>Short version, in case you can't: <strong>Happy Friendship Day, Mansi. You're a
+    far better artist than you let yourself believe. — Nishant</strong>
   </div>
+</noscript>
 
-  <!-- paw print progress trail -->
-  <div class="paw-trail" id="pawTrail" aria-hidden="true">
-    <div class="paw-trail-fill" id="pawTrailFill"></div>
-  </div>
+<main id="top">
 
-  <!-- sticky mascot -->
-  <div class="mascot-dock" id="mascotDock">
-    <div class="speech-bubble" id="mascotSpeech">Hi! I'm Ziggy 🦊 Scroll with me!</div>
-    <svg id="ziggy" class="ziggy" viewBox="0 0 200 200" width="84" height="84">
-      <ellipse cx="100" cy="150" rx="55" ry="34" fill="#FF9F5B"/>
-      <path d="M45 120 Q30 40 100 55 Q170 40 155 120 Q170 150 140 155 Q100 175 60 155 Q30 150 45 120Z" fill="#FF9F5B"/>
-      <path d="M60 60 L45 20 L80 55Z" fill="#FF9F5B"/>
-      <path d="M140 60 L155 20 L120 55Z" fill="#FF9F5B"/>
-      <path d="M65 62 L54 34 L82 58Z" fill="#FFD9B3"/>
-      <path d="M135 62 L146 34 L118 58Z" fill="#FFD9B3"/>
-      <ellipse cx="100" cy="105" rx="34" ry="26" fill="#FFF6EC"/>
-      <circle class="eye" cx="82" cy="88" r="7" fill="#3B2C55"/>
-      <circle class="eye" cx="118" cy="88" r="7" fill="#3B2C55"/>
-      <ellipse cx="70" cy="102" rx="8" ry="6" fill="#FFC2D1" opacity="0.8"/>
-      <ellipse cx="130" cy="102" rx="8" ry="6" fill="#FFC2D1" opacity="0.8"/>
-      <path d="M92 100 Q100 108 108 100" stroke="#3B2C55" stroke-width="3" fill="none" stroke-linecap="round"/>
-      <path d="M100 90 L94 100 L106 100Z" fill="#3B2C55"/>
-    </svg>
-  </div>
+  <!-- ═══════════════ 1 · THE BLANK CANVAS ═══════════════ -->
+  <section class="section hero" id="hero" aria-labelledby="hero-title">
+    <p class="margin-note hero__note" data-el="marginNote">est. class 6 · 2014</p>
 
-  <!-- HERO -->
-  <header class="hero" id="hero">
-    <div class="hero-inner">
-      <p class="eyebrow">🎉 a very unofficial holiday, celebrated very officially 🎉</p>
-      <h1 class="hero-title">
-        Happy <span class="wiggle">Friendship</span><br> Day, <span id="friendNameHero" class="name-blank">Friend</span>!
-      </h1>
-      <p class="hero-sub">You've somehow put up with me for
-        <strong><span id="dayCount">0</span> days</strong> and counting — that's basically a world record.
-        Scroll down, there's a whole page dedicated to how great you are.</p>
-      <button class="btn-primary" id="scrollBtn">Okay show me already ↓</button>
-    </div>
-    <div class="hero-critters" aria-hidden="true">
-      <span class="critter c1">🐻</span>
-      <span class="critter c2">🐰</span>
-      <span class="critter c3">🐼</span>
-      <span class="critter c4">🦦</span>
-      <span class="critter c5">🐶</span>
-    </div>
-  </header>
-
-  <!-- COUNTER / STAT SECTION -->
-  <section class="section counter-section" id="counter">
-    <h2 class="section-title">Our friendship, by the numbers <span class="tiny-doodle">📊🐾</span></h2>
-    <div class="stat-grid">
-      <div class="stat-card">
-        <span class="stat-emoji">📅</span>
-        <span class="stat-number" id="statDays">0</span>
-        <span class="stat-label">days of friendship</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-emoji">😂</span>
-        <span class="stat-number" id="statLaughs">∞</span>
-        <span class="stat-label">inside jokes, unrankable</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-emoji">🍕</span>
-        <span class="stat-number" id="statFood">∞</span>
-        <span class="stat-label">snacks shared, no regrets</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-emoji">💬</span>
-        <span class="stat-number" id="statTexts">∞</span>
-        <span class="stat-label">3am texts that made sense at the time</span>
-      </div>
-    </div>
-    <p class="edit-hint">psst — edit <code>MEET_DATE</code> in <code>script.js</code> to make the counter real</p>
-  </section>
-
-  <!-- POP FOR GOOD VIBES GAME -->
-  <section class="section pop-section" id="pop-game">
-    <h2 class="section-title">Pop for good vibes 🫧</h2>
-    <div class="critter-crew" aria-hidden="true">
-      <svg class="crew-puppy" viewBox="0 0 100 100" width="56" height="56">
-        <ellipse class="tail" cx="18" cy="55" rx="6" ry="14" fill="#D9A066"/>
-        <ellipse cx="52" cy="60" rx="34" ry="26" fill="#E9B77E"/>
-        <ellipse cx="40" cy="34" rx="4" ry="10" fill="#C98A4B" transform="rotate(-20 40 34)"/>
-        <ellipse cx="66" cy="34" rx="4" ry="10" fill="#C98A4B" transform="rotate(20 66 34)"/>
-        <ellipse cx="52" cy="58" rx="22" ry="17" fill="#FFF3E4"/>
-        <circle cx="44" cy="55" r="3.5" fill="#3B2C55"/>
-        <circle cx="62" cy="55" r="3.5" fill="#3B2C55"/>
-        <ellipse cx="52" cy="65" rx="4" ry="3" fill="#3B2C55"/>
+    <h1 class="hero__title" id="hero-title">
+      <span class="sr-only" data-el="heroSrText">Happy Friendship Day, Mansi.</span>
+      <svg class="hero__svg" viewBox="0 0 900 330" aria-hidden="true" focusable="false"
+           preserveAspectRatio="xMidYMid meet">
+        <g class="hero__lines">
+          <!-- line 1 -->
+          <text class="hl hl--sketch" data-line="1" x="450" y="128">Happy Friendship Day,</text>
+          <text class="hl hl--ink"    data-line="1" x="450" y="128">Happy Friendship Day,</text>
+          <text class="hl hl--fill"   data-line="1" x="450" y="128">Happy Friendship Day,</text>
+          <!-- line 2 -->
+          <text class="hl hl--sketch hl--big" data-line="2" x="450" y="272">Mansi.</text>
+          <text class="hl hl--ink    hl--big" data-line="2" x="450" y="272">Mansi.</text>
+          <text class="hl hl--fill   hl--big" data-line="2" x="450" y="272">Mansi.</text>
+        </g>
       </svg>
-      <svg class="crew-cat" viewBox="0 0 100 100" width="56" height="56">
-        <path d="M32 30 L20 12 L44 28Z" fill="#8C7AE6"/>
-        <path d="M68 30 L80 12 L56 28Z" fill="#8C7AE6"/>
-        <ellipse cx="50" cy="58" rx="30" ry="25" fill="#A594F9"/>
-        <ellipse cx="50" cy="58" rx="20" ry="15" fill="#F1ECFF"/>
-        <circle cx="42" cy="54" r="3.5" fill="#3B2C55"/>
-        <circle cx="58" cy="54" r="3.5" fill="#3B2C55"/>
-        <path d="M46 64 Q50 68 54 64" stroke="#3B2C55" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-      </svg>
-      <svg class="crew-bunny" viewBox="0 0 100 100" width="56" height="56">
-        <ellipse class="ear" cx="38" cy="18" rx="8" ry="24" fill="#FFC2D1"/>
-        <ellipse class="ear" cx="62" cy="18" rx="8" ry="24" fill="#FFC2D1"/>
-        <ellipse cx="50" cy="60" rx="28" ry="24" fill="#FFF0F5"/>
-        <circle cx="42" cy="58" r="3.5" fill="#3B2C55"/>
-        <circle cx="58" cy="58" r="3.5" fill="#3B2C55"/>
-        <ellipse cx="50" cy="66" rx="3.5" ry="2.6" fill="#FF9BB3"/>
-      </svg>
-    </div>
-    <p class="section-sub">Tap every bubble before the puppies lose interest. Each one's holding a reason our friendship's the good kind.</p>
-    <div class="pop-progress-wrap">
-      <span id="popProgressLabel">0 / 12 popped</span>
-      <div class="pop-progress-bar"><div class="pop-progress-fill" id="popProgressFill"></div></div>
-    </div>
-    <div class="pop-arena" id="popArena"></div>
-    <div class="pop-finish" id="popFinish" hidden>
-      <span class="pop-finish-emoji">🐾🎊🐾</span>
-      <p>Every single one popped. That's basically a metaphor for how you handle everything.</p>
-      <button class="btn-secondary" id="popReplay">Pop them all again</button>
+    </h1>
+
+    <p class="hero__sub">
+      This page is blank on purpose. Scroll — you'll see why.
+    </p>
+
+    <div class="scroll-cue" id="scrollCue" aria-hidden="true">
+      <span class="scroll-cue__label">scroll</span>
+      <span class="scroll-cue__arrow">↓</span>
     </div>
   </section>
 
-  <!-- QUIZ GAME -->
-  <section class="section quiz-section" id="quiz">
-    <h2 class="section-title">How well do you know us? 🎮</h2>
-    <p class="section-sub">A completely unbiased, very scientific quiz.</p>
-    <div class="quiz-card" id="quizCard">
-      <div class="quiz-progress">
-        <span id="quizProgressLabel">Question 1 of 5</span>
-        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
+
+  <!-- ═══════════════ 2 · THE PAINT-REVEAL COUNTER ═══════════════ -->
+  <section class="section counter" id="counter" aria-labelledby="counter-title">
+    <h2 class="sr-only" id="counter-title">How long we've known each other</h2>
+
+    <div class="counter__grid">
+      <div class="counter__reveal">
+        <!-- the number lives under a smear of wet paint -->
+        <div class="smear-stage">
+          <p class="counter__value" id="counterValue" aria-live="polite">
+            <span class="counter__num" id="counterNum">0</span>
+            <span class="counter__unit">days since <span data-el="meetLabel">Class 6</span></span>
+          </p>
+          <div class="smear" id="smear" aria-hidden="true">
+            <span class="smear__blob smear__blob--a"></span>
+            <span class="smear__blob smear__blob--b"></span>
+            <span class="smear__blob smear__blob--c"></span>
+            <span class="smear__blob smear__blob--d"></span>
+          </div>
+        </div>
+        <p class="counter__sub margin-note" id="counterSub" data-reveal></p>
       </div>
-      <p class="quiz-question" id="quizQuestion"></p>
-      <div class="quiz-options" id="quizOptions"></div>
-      <p class="quiz-feedback" id="quizFeedback"></p>
-    </div>
-    <div class="quiz-result" id="quizResult" hidden>
-      <span class="result-emoji" id="resultEmoji">🏆</span>
-      <p id="resultText"></p>
-      <button class="btn-secondary" id="retryQuiz">Play again</button>
+
+      <ul class="counter__stats margin-note" id="counterStats" data-reveal></ul>
     </div>
   </section>
 
-  <!-- APPRECIATION GENERATOR -->
-  <section class="section appreciation-section" id="appreciate">
-    <h2 class="section-title">Reasons you're the best 💖</h2>
-    <p class="section-sub">Click the button. Do it more than once, I dare you.</p>
-    <div class="appreciation-card">
-      <p id="appreciationText">Click below for a completely random, 100% true reason you're awesome.</p>
-      <button class="btn-primary" id="appreciateBtn">Give me a reason 🎁</button>
-    </div>
-  </section>
 
-  <!-- MESSAGE -->
-  <section class="section message-section" id="message">
-    <div class="letter">
-      <span class="letter-seal">💌</span>
-      <h2 class="section-title">One more thing...</h2>
-      <p id="letterBody">
-        Editable in <code>script.js</code> → <code>LETTER_TEXT</code>. Write the real, un-ironic paragraph here —
-        the quiz and the games are the wrapping paper, this is the actual gift.
+  <!-- ═══════════════ 3 · PICK UP THE BRUSH ═══════════════ -->
+  <section class="section paint" id="paint" aria-labelledby="paint-title">
+    <header class="section__head">
+      <p class="margin-note">03 · the studio</p>
+      <h2 class="section__title" id="paint-title" data-reveal>Pick up the brush.</h2>
+      <p class="section__lead" data-reveal>
+        No prompt, no brief, nobody grading it. Just a rectangle and you —
+        which, historically, is all you've ever needed.
       </p>
-      <p class="letter-sign">— <span id="yourNameSign">Your Name</span></p>
+    </header>
+
+    <div class="easel" data-reveal>
+      <div class="easel__canvas-wrap">
+        <canvas id="paintCanvas" role="img"
+                aria-label="A canvas you can draw on with your mouse or finger."
+                tabindex="0"></canvas>
+        <p class="easel__guide" id="paintGuide" aria-hidden="true">draw something 🖌️</p>
+      </div>
+
+      <div class="easel__tools">
+        <div class="tool-group">
+          <span class="tool-label margin-note" id="pigmentLabel">pigment</span>
+          <div class="palette" id="palette" role="radiogroup" aria-labelledby="pigmentLabel"></div>
+        </div>
+
+        <div class="tool-group tool-group--size">
+          <label class="tool-label margin-note" for="brushSize">brush</label>
+          <input type="range" id="brushSize" min="6" max="72" value="26" step="1"
+                 aria-describedby="brushSizeOut">
+          <output class="margin-note tool-out" id="brushSizeOut" for="brushSize">26</output>
+        </div>
+
+        <button type="button" class="btn btn--ghost" id="clearPaint">Clear canvas</button>
+      </div>
+
+      <p class="easel__praise margin-note" id="paintPraise" aria-live="polite"></p>
     </div>
   </section>
 
-  <footer class="footer">
-    <p>made with 🐾 and way too many emoji, for <span id="friendNameFooter">Friend</span></p>
-    <button class="btn-confetti" id="confettiBtn">🎊 one more surprise</button>
-  </footer>
 
-  <canvas id="confettiCanvas"></canvas>
+  <!-- ═══════════════ 4 · THE MUSEUM ═══════════════ -->
+  <section class="section museum" id="museum" aria-labelledby="museum-title">
+    <header class="section__head">
+      <p class="margin-note">04 · now showing</p>
+      <h2 class="section__title" id="museum-title" data-reveal>The <span data-el="museumName">Mansi</span> Museum</h2>
+      <p class="section__lead" data-reveal>
+        Five placards. No wrong answers — the curator checked.
+      </p>
+    </header>
 
-  <script src="script.js"></script>
+    <div class="wall" id="museumWall">
+      <!-- placards injected from MUSEUM_QUESTIONS -->
+    </div>
+
+    <!-- the reveal -->
+    <article class="placard placard--final is-locked" id="finalPlacard" aria-live="polite">
+      <span class="pin" aria-hidden="true"></span>
+      <p class="placard__index margin-note">the diagnosis</p>
+      <div class="placard__locked margin-note" id="finalLocked">
+        answer all five to unlock the placard
+      </div>
+      <div class="placard__revealed" id="finalRevealed" hidden>
+        <h3 class="placard__verdict" id="finalTitle"></h3>
+        <p class="placard__verdict-body" id="finalBody"></p>
+      </div>
+    </article>
+  </section>
+
+
+  <!-- ═══════════════ 5 · THE FINISHED PAINTING + LETTER ═══════════════ -->
+  <section class="section gallery" id="letter" aria-labelledby="letter-title">
+    <div class="painting-stage">
+      <canvas id="paintingCanvas" aria-hidden="true"></canvas>
+      <p class="painting-stage__tag margin-note" id="paintingTag" aria-hidden="true">
+        untitled · mixed media on scroll
+      </p>
+    </div>
+
+    <!-- no data-reveal: script.js choreographs this one with the painting -->
+    <article class="letter-placard">
+      <p class="letter-placard__eyebrow margin-note">05 · permanent collection</p>
+      <h2 class="letter-placard__title" id="letter-title">You painted this.</h2>
+      <div class="letter-placard__body" id="letterBody"><!-- injected --></div>
+      <p class="letter-placard__sign" id="letterSign"></p>
+    </article>
+  </section>
+
+
+  <!-- ═══════════════ 6 · SIGN THE CANVAS ═══════════════ -->
+  <section class="section sign" id="sign" aria-labelledby="sign-title">
+    <header class="section__head">
+      <p class="margin-note">06 · the last brushstroke</p>
+      <h2 class="section__title" id="sign-title" data-reveal>Sign it.</h2>
+      <p class="section__lead" data-reveal>
+        Every finished piece gets the artist's name in the corner. Yours too.
+      </p>
+    </header>
+
+    <div class="sign-plate" data-reveal>
+      <canvas id="signCanvas" role="img"
+              aria-label="Sign your initials here with your mouse or finger."
+              tabindex="0"></canvas>
+      <div class="sign-plate__rule" aria-hidden="true"></div>
+      <div class="sign-plate__tools">
+        <span class="margin-note sign-plate__hint" id="signHint">your initials, here</span>
+        <button type="button" class="btn btn--ghost btn--sm" id="clearSign">Redo signature</button>
+      </div>
+    </div>
+
+    <p class="sign-done" id="signDone" aria-live="polite"></p>
+
+    <!-- unlocked by signing: the door through to studio.html -->
+    <div class="door" id="studioDoor" hidden>
+      <div class="door__frame">
+        <span class="door__panel door__panel--l" aria-hidden="true"></span>
+        <span class="door__panel door__panel--r" aria-hidden="true"></span>
+        <span class="door__spill" aria-hidden="true"></span>
+        <div class="door__inner">
+          <p class="margin-note door__eyebrow">a room you haven't seen yet</p>
+          <a class="door__cta" href="studio.html" id="studioLink">
+            Enter The Studio <span class="door__arrow" aria-hidden="true">→</span>
+          </a>
+          <p class="margin-note door__hint">three small things, made for you</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p class="margin-note" id="footerNote">made for Mansi · with paint and pixels</p>
+  <a class="footer__top" href="#top">back to the blank canvas ↑</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
