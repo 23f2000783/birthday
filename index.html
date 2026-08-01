@@ -1,1 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Friendship Day 🦊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+  <!-- floating ambient doodles -->
+  <div class="ambient" aria-hidden="true">
+    <span class="drift d1">🍃</span>
+    <span class="drift d2">✨</span>
+    <span class="drift d3">🎈</span>
+    <span class="drift d4">🌸</span>
+    <span class="drift d5">✨</span>
+    <span class="drift d6">🫧</span>
+  </div>
+
+  <!-- paw print progress trail -->
+  <div class="paw-trail" id="pawTrail" aria-hidden="true">
+    <div class="paw-trail-fill" id="pawTrailFill"></div>
+  </div>
+
+  <!-- sticky mascot -->
+  <div class="mascot-dock" id="mascotDock">
+    <div class="speech-bubble" id="mascotSpeech">Hi! I'm Ziggy 🦊 Scroll with me!</div>
+    <svg id="ziggy" class="ziggy" viewBox="0 0 200 200" width="84" height="84">
+      <ellipse cx="100" cy="150" rx="55" ry="34" fill="#FF9F5B"/>
+      <path d="M45 120 Q30 40 100 55 Q170 40 155 120 Q170 150 140 155 Q100 175 60 155 Q30 150 45 120Z" fill="#FF9F5B"/>
+      <path d="M60 60 L45 20 L80 55Z" fill="#FF9F5B"/>
+      <path d="M140 60 L155 20 L120 55Z" fill="#FF9F5B"/>
+      <path d="M65 62 L54 34 L82 58Z" fill="#FFD9B3"/>
+      <path d="M135 62 L146 34 L118 58Z" fill="#FFD9B3"/>
+      <ellipse cx="100" cy="105" rx="34" ry="26" fill="#FFF6EC"/>
+      <circle class="eye" cx="82" cy="88" r="7" fill="#3B2C55"/>
+      <circle class="eye" cx="118" cy="88" r="7" fill="#3B2C55"/>
+      <ellipse cx="70" cy="102" rx="8" ry="6" fill="#FFC2D1" opacity="0.8"/>
+      <ellipse cx="130" cy="102" rx="8" ry="6" fill="#FFC2D1" opacity="0.8"/>
+      <path d="M92 100 Q100 108 108 100" stroke="#3B2C55" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M100 90 L94 100 L106 100Z" fill="#3B2C55"/>
+    </svg>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero" id="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">🎉 a very unofficial holiday, celebrated very officially 🎉</p>
+      <h1 class="hero-title">
+        Happy <span class="wiggle">Friendship</span><br> Day, <span id="friendNameHero" class="name-blank">Friend</span>!
+      </h1>
+      <p class="hero-sub">You've somehow put up with me for
+        <strong><span id="dayCount">0</span> days</strong> and counting — that's basically a world record.
+        Scroll down, there's a whole page dedicated to how great you are.</p>
+      <button class="btn-primary" id="scrollBtn">Okay show me already ↓</button>
+    </div>
+    <div class="hero-critters" aria-hidden="true">
+      <span class="critter c1">🐻</span>
+      <span class="critter c2">🐰</span>
+      <span class="critter c3">🐼</span>
+      <span class="critter c4">🦦</span>
+      <span class="critter c5">🐶</span>
+    </div>
+  </header>
+
+  <!-- COUNTER / STAT SECTION -->
+  <section class="section counter-section" id="counter">
+    <h2 class="section-title">Our friendship, by the numbers <span class="tiny-doodle">📊🐾</span></h2>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <span class="stat-emoji">📅</span>
+        <span class="stat-number" id="statDays">0</span>
+        <span class="stat-label">days of friendship</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-emoji">😂</span>
+        <span class="stat-number" id="statLaughs">∞</span>
+        <span class="stat-label">inside jokes, unrankable</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-emoji">🍕</span>
+        <span class="stat-number" id="statFood">∞</span>
+        <span class="stat-label">snacks shared, no regrets</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-emoji">💬</span>
+        <span class="stat-number" id="statTexts">∞</span>
+        <span class="stat-label">3am texts that made sense at the time</span>
+      </div>
+    </div>
+    <p class="edit-hint">psst — edit <code>MEET_DATE</code> in <code>script.js</code> to make the counter real</p>
+  </section>
+
+  <!-- MEMORY LANE -->
+  <section class="section memory-section" id="memories">
+    <h2 class="section-title">Memory lane 🛤️ <span class="tiny-doodle">(flip the cards)</span></h2>
+    <p class="section-sub">Tap a card to reveal it. Edit the <code>MEMORIES</code> list in <code>script.js</code> to swap in your real ones.</p>
+    <div class="memory-grid" id="memoryGrid"></div>
+  </section>
+
+  <!-- QUIZ GAME -->
+  <section class="section quiz-section" id="quiz">
+    <h2 class="section-title">How well do you know us? 🎮</h2>
+    <p class="section-sub">A completely unbiased, very scientific quiz.</p>
+    <div class="quiz-card" id="quizCard">
+      <div class="quiz-progress">
+        <span id="quizProgressLabel">Question 1 of 5</span>
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quizProgressFill"></div></div>
+      </div>
+      <p class="quiz-question" id="quizQuestion"></p>
+      <div class="quiz-options" id="quizOptions"></div>
+      <p class="quiz-feedback" id="quizFeedback"></p>
+    </div>
+    <div class="quiz-result" id="quizResult" hidden>
+      <span class="result-emoji" id="resultEmoji">🏆</span>
+      <p id="resultText"></p>
+      <button class="btn-secondary" id="retryQuiz">Play again</button>
+    </div>
+  </section>
+
+  <!-- APPRECIATION GENERATOR -->
+  <section class="section appreciation-section" id="appreciate">
+    <h2 class="section-title">Reasons you're the best 💖</h2>
+    <p class="section-sub">Click the button. Do it more than once, I dare you.</p>
+    <div class="appreciation-card">
+      <p id="appreciationText">Click below for a completely random, 100% true reason you're awesome.</p>
+      <button class="btn-primary" id="appreciateBtn">Give me a reason 🎁</button>
+    </div>
+  </section>
+
+  <!-- MESSAGE -->
+  <section class="section message-section" id="message">
+    <div class="letter">
+      <span class="letter-seal">💌</span>
+      <h2 class="section-title">One more thing...</h2>
+      <p id="letterBody">
+        Editable in <code>script.js</code> → <code>LETTER_TEXT</code>. Write the real, un-ironic paragraph here —
+        the quiz and the games are the wrapping paper, this is the actual gift.
+      </p>
+      <p class="letter-sign">— <span id="yourNameSign">Your Name</span></p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>made with 🐾 and way too many emoji, for <span id="friendNameFooter">Friend</span></p>
+    <button class="btn-confetti" id="confettiBtn">🎊 one more surprise</button>
+  </footer>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <script src="script.js"></script>
+</body>
+</html>
