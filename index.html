@@ -95,11 +95,49 @@
     <p class="edit-hint">psst — edit <code>MEET_DATE</code> in <code>script.js</code> to make the counter real</p>
   </section>
 
-  <!-- MEMORY LANE -->
-  <section class="section memory-section" id="memories">
-    <h2 class="section-title">Memory lane 🛤️ <span class="tiny-doodle">(flip the cards)</span></h2>
-    <p class="section-sub">Tap a card to reveal it. Edit the <code>MEMORIES</code> list in <code>script.js</code> to swap in your real ones.</p>
-    <div class="memory-grid" id="memoryGrid"></div>
+  <!-- POP FOR GOOD VIBES GAME -->
+  <section class="section pop-section" id="pop-game">
+    <h2 class="section-title">Pop for good vibes 🫧</h2>
+    <div class="critter-crew" aria-hidden="true">
+      <svg class="crew-puppy" viewBox="0 0 100 100" width="56" height="56">
+        <ellipse class="tail" cx="18" cy="55" rx="6" ry="14" fill="#D9A066"/>
+        <ellipse cx="52" cy="60" rx="34" ry="26" fill="#E9B77E"/>
+        <ellipse cx="40" cy="34" rx="4" ry="10" fill="#C98A4B" transform="rotate(-20 40 34)"/>
+        <ellipse cx="66" cy="34" rx="4" ry="10" fill="#C98A4B" transform="rotate(20 66 34)"/>
+        <ellipse cx="52" cy="58" rx="22" ry="17" fill="#FFF3E4"/>
+        <circle cx="44" cy="55" r="3.5" fill="#3B2C55"/>
+        <circle cx="62" cy="55" r="3.5" fill="#3B2C55"/>
+        <ellipse cx="52" cy="65" rx="4" ry="3" fill="#3B2C55"/>
+      </svg>
+      <svg class="crew-cat" viewBox="0 0 100 100" width="56" height="56">
+        <path d="M32 30 L20 12 L44 28Z" fill="#8C7AE6"/>
+        <path d="M68 30 L80 12 L56 28Z" fill="#8C7AE6"/>
+        <ellipse cx="50" cy="58" rx="30" ry="25" fill="#A594F9"/>
+        <ellipse cx="50" cy="58" rx="20" ry="15" fill="#F1ECFF"/>
+        <circle cx="42" cy="54" r="3.5" fill="#3B2C55"/>
+        <circle cx="58" cy="54" r="3.5" fill="#3B2C55"/>
+        <path d="M46 64 Q50 68 54 64" stroke="#3B2C55" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+      </svg>
+      <svg class="crew-bunny" viewBox="0 0 100 100" width="56" height="56">
+        <ellipse class="ear" cx="38" cy="18" rx="8" ry="24" fill="#FFC2D1"/>
+        <ellipse class="ear" cx="62" cy="18" rx="8" ry="24" fill="#FFC2D1"/>
+        <ellipse cx="50" cy="60" rx="28" ry="24" fill="#FFF0F5"/>
+        <circle cx="42" cy="58" r="3.5" fill="#3B2C55"/>
+        <circle cx="58" cy="58" r="3.5" fill="#3B2C55"/>
+        <ellipse cx="50" cy="66" rx="3.5" ry="2.6" fill="#FF9BB3"/>
+      </svg>
+    </div>
+    <p class="section-sub">Tap every bubble before the puppies lose interest. Each one's holding a reason our friendship's the good kind.</p>
+    <div class="pop-progress-wrap">
+      <span id="popProgressLabel">0 / 12 popped</span>
+      <div class="pop-progress-bar"><div class="pop-progress-fill" id="popProgressFill"></div></div>
+    </div>
+    <div class="pop-arena" id="popArena"></div>
+    <div class="pop-finish" id="popFinish" hidden>
+      <span class="pop-finish-emoji">🐾🎊🐾</span>
+      <p>Every single one popped. That's basically a metaphor for how you handle everything.</p>
+      <button class="btn-secondary" id="popReplay">Pop them all again</button>
+    </div>
   </section>
 
   <!-- QUIZ GAME -->

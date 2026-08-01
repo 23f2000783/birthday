@@ -7,15 +7,21 @@ const FRIEND_NAME = "Friend";          // your friend's name
 const YOUR_NAME   = "Your Name";       // your name
 const MEET_DATE   = "2022-08-02";      // YYYY-MM-DD, the day you met (or any day you want to count from)
 
-// 6 memory cards. "front" is what shows before flipping (kept short),
-// "back" is the actual memory. Change all six to real ones!
-const MEMORIES = [
-  { emoji: "🎬", front: "The one with the terrible movie", back: "Replace this with the time we watched that awful movie and couldn't stop laughing about it for a week." },
-  { emoji: "🌧️", front: "That rainy day", back: "Replace this with the story about getting caught in the rain and turning it into an adventure anyway." },
-  { emoji: "🎂", front: "The birthday surprise", back: "Replace this with the birthday plan that almost fell apart but somehow worked out perfectly." },
-  { emoji: "🚗", front: "The road trip playlist", back: "Replace this with the road trip where the same 5 songs played on loop and nobody minded." },
-  { emoji: "📚", front: "The exam-week rescue", back: "Replace this with the time you saved me during exam week / a deadline / a crisis." },
-  { emoji: "🌙", front: "The 2am phone call", back: "Replace this with the late-night conversation that somehow fixed everything." },
+// "Pop for good vibes" game — 12 bubbles, each reveals one of these when popped.
+// Emoji sets the bubble's little icon; message is what shows once it's tapped.
+const GOOD_VIBES = [
+  { emoji: "🐶", message: "You've never once made me feel silly for caring too much about something." },
+  { emoji: "🐱", message: "You remember tiny details I forgot I even said." },
+  { emoji: "🐰", message: "You show up. Every time, no drama, you just show up." },
+  { emoji: "🦊", message: "You laugh at my worst jokes like they're my best ones." },
+  { emoji: "🐻", message: "You've seen me at my most annoying and stuck around anyway." },
+  { emoji: "🐼", message: "You make ordinary days feel like they matter." },
+  { emoji: "🦦", message: "You tell me the truth even when it's easier not to." },
+  { emoji: "🐨", message: "You're the group chat's chaos and its glue, somehow at once." },
+  { emoji: "🐹", message: "You celebrate my wins like they're your own." },
+  { emoji: "🐣", message: "You've talked me down off more ledges than I can count." },
+  { emoji: "🐷", message: "You make the boring plans fun just by being there." },
+  { emoji: "🐥", message: "You're proof that some people are just worth keeping." },
 ];
 
 // Quiz questions — "answers" array, "correct" is the index (0-based) of the right one.
@@ -103,7 +109,7 @@ const ziggy = document.getElementById("ziggy");
 const speechLines = [
   "Hi! I'm Ziggy 🦊 Scroll with me!",
   "Ooh, the numbers section!",
-  "These memories are my favorite part.",
+  "Go pop some bubbles, I dare you.",
   "Quiz time, no pressure 👀",
   "You're doing great, by the way.",
   "Almost at the good part...",
@@ -139,22 +145,57 @@ document.getElementById("scrollBtn").addEventListener("click", () => {
   document.getElementById("counter").scrollIntoView({ behavior:"smooth" });
 });
 
-// --- memory cards ---
-const memoryGrid = document.getElementById("memoryGrid");
-MEMORIES.forEach((m, i) => {
-  const card = document.createElement("div");
-  card.className = "memory-card";
-  card.innerHTML = `
-    <div class="memory-card-inner">
-      <div class="memory-face memory-front">
-        <span class="memory-num">${String(i+1).padStart(2,"0")}</span>
-        <span class="memory-emoji">${m.emoji}</span>
-      </div>
-      <div class="memory-face memory-back">${m.back}</div>
-    </div>`;
-  card.addEventListener("click", () => card.classList.toggle("flipped"));
-  memoryGrid.appendChild(card);
-});
+// --- pop for good vibes game ---
+const popArena = document.getElementById("popArena");
+const popProgressLabel = document.getElementById("popProgressLabel");
+const popProgressFill = document.getElementById("popProgressFill");
+const popFinish = document.getElementById("popFinish");
+const bubbleColors = ["#5FD4D0","#FF6B9D","#FFD23F","#4CD787","#FF9F5B","#8C7AE6"];
+let popped = 0;
+
+function buildBubbles(){
+  popArena.innerHTML = "";
+  popFinish.hidden = true;
+  popped = 0;
+  updatePopProgress();
+  const shuffled = [...GOOD_VIBES].sort(() => Math.random() - 0.5);
+  shuffled.forEach((item, i) => {
+    const bubble = document.createElement("button");
+    bubble.className = "bubble";
+    bubble.style.setProperty("--bubble-color", bubbleColors[i % bubbleColors.length]);
+    bubble.textContent = item.emoji;
+    bubble.setAttribute("aria-label", "Pop this bubble");
+    bubble.addEventListener("click", () => popBubble(bubble, item), { once:true });
+    popArena.appendChild(bubble);
+  });
+}
+
+function popBubble(bubble, item){
+  bubble.classList.add("popped");
+  bubble.textContent = "";
+  bubble.setAttribute("aria-hidden", "true");
+
+  const msgCard = document.createElement("div");
+  msgCard.className = "pop-message-card";
+  msgCard.textContent = item.message;
+  bubble.replaceWith(msgCard);
+
+  popped++;
+  updatePopProgress();
+  miniConfettiAt(msgCard);
+
+  if(popped === GOOD_VIBES.length){
+    setTimeout(() => { popFinish.hidden = false; burstConfetti(); }, 400);
+  }
+}
+
+function updatePopProgress(){
+  popProgressLabel.textContent = `${popped} / ${GOOD_VIBES.length} popped`;
+  popProgressFill.style.width = `${(popped / GOOD_VIBES.length) * 100}%`;
+}
+
+document.getElementById("popReplay").addEventListener("click", buildBubbles);
+buildBubbles();
 
 // --- quiz ---
 let qIndex = 0;
@@ -302,3 +343,20 @@ function tick(){
 }
 
 document.getElementById("confettiBtn").addEventListener("click", burstConfetti);
+
+function miniConfettiAt(el){
+  const rect = el.getBoundingClientRect();
+  const x = rect.left + rect.width/2;
+  const y = rect.top + rect.height/2;
+  particles = particles.concat(Array.from({length:18}, () => ({
+    x, y,
+    vx: (Math.random()-0.5)*6,
+    vy: Math.random()*-5 - 2,
+    size: Math.random()*5+3,
+    color: colors[Math.floor(Math.random()*colors.length)],
+    rot: Math.random()*360,
+    vr: (Math.random()-0.5)*10,
+    life: 0,
+  })));
+  requestAnimationFrame(tick);
+}
