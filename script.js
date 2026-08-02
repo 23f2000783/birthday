@@ -144,6 +144,16 @@ Happy Friendship Day. 🎨`;
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
   const lerp = (a, b, t) => a + (b - a) * t;
 
+  /* ── One motion vocabulary (§5) ──────────────────────────────────────
+     Every reveal on the page uses these three, so no beat ever hard-cuts
+     against another. EASE_OUT for things arriving, EASE_IO for things
+     travelling through, EASE_SOFT for small settles. Shared with the
+     studio's easing so the two halves feel like one hand made them. */
+  const EASE_OUT = 'power3.out';
+  const EASE_IO = 'power2.inOut';
+  const EASE_SOFT = 'power2.out';
+  const D_SLOW = 1.2, D_MED = 0.9, D_FAST = 0.6;   // shared durations
+
   /** Small deterministic PRNG so a given set of answers always paints the same picture. */
   function mulberry32(seed) {
     let a = seed >>> 0;
@@ -533,7 +543,7 @@ Happy Friendship Day. 🎨`;
       gsap.set(['.hero__sub', '#scrollCue'], { opacity: 0, y: 14 });
       gsap.set('.hero__note', { opacity: 0 });
 
-      const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+      const tl = gsap.timeline({ defaults: { ease: EASE_SOFT } });
       tl.to('.hero__note', { opacity: 1, duration: 0.7 }, 0)
         .to(sketch, { opacity: 1, duration: 0.9, stagger: 0.12 }, 0.1)
         .to(ink, {
@@ -1012,7 +1022,7 @@ Happy Friendship Day. 🎨`;
         if (HAS_GSAP) {
           gsap.fromTo(revealed,
             { opacity: 0, y: REDUCED ? 0 : 18 },
-            { opacity: 1, y: 0, duration: REDUCED ? 0.4 : 0.9, ease: 'power2.out' });
+            { opacity: 1, y: 0, duration: REDUCED ? 0.4 : 0.9, ease: EASE_SOFT });
         }
         if (!REDUCED) {
           burstFrom(finalCard, 70);
@@ -1034,7 +1044,7 @@ Happy Friendship Day. 🎨`;
         gsap.set(card, { opacity: 0, y: 54, rotate: i % 2 ? 1.4 : -1.4, transformOrigin: '50% -10px' });
         gsap.to(card, {
           opacity: 1, y: 0, rotate: 0,
-          duration: 1.05, ease: 'power3.out',
+          duration: 1.05, ease: EASE_OUT,
           scrollTrigger: { trigger: card, start: 'top 88%', once: true }
         });
         gsap.fromTo($('.pin', card),
@@ -1046,7 +1056,7 @@ Happy Friendship Day. 🎨`;
       });
       gsap.set(finalCard, { opacity: 0, y: 40 });
       gsap.to(finalCard, {
-        opacity: 1, y: 0, duration: 1, ease: 'power3.out',
+        opacity: 1, y: 0, duration: 1, ease: EASE_OUT,
         scrollTrigger: { trigger: finalCard, start: 'top 88%', once: true }
       });
     } else if (HAS_GSAP) {
@@ -1355,7 +1365,7 @@ Happy Friendship Day. 🎨`;
 
     gsap.set('.letter-placard', { opacity: 0, y: 46 });
     gsap.to('.letter-placard', {
-      opacity: 1, y: 0, duration: 1.2, ease: 'power3.out',
+      opacity: 1, y: 0, duration: 1.2, ease: EASE_OUT,
       scrollTrigger: { trigger: '.letter-placard', start: 'top 86%', once: true }
     });
     gsap.fromTo('.painting-stage__tag', { opacity: 0 }, {
@@ -1398,6 +1408,7 @@ Happy Friendship Day. 🎨`;
             Ambient.burst(r.left + r.width * 0.75, r.top + r.height / 2, 30);
           }, 260);
         }
+        revealSaveCanvas();
         openStudioDoor();
       }
     });
@@ -1416,6 +1427,173 @@ Happy Friendship Day. 🎨`;
     }
 
     window.addEventListener('resize', debounce(function () { sig.resize(); }, 180));
+  }
+
+
+  /* ─────────────── 11a · SAVE OUR CANVAS (§4 Section 6) ─────────────── */
+
+  const EXPORT_MARK = 'for ' + FRIEND_NAME + ' · from ' + YOUR_NAME + ' · Happy Friendship Day';
+  const CARD_W = 1080, CARD_H = 1350;
+
+  function toast(msg) {
+    const el = $('#toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.classList.add('is-on');
+    clearTimeout(el._t);
+    el._t = setTimeout(function () { el.classList.remove('is-on'); }, 2600);
+  }
+
+  /** Gesso ground + procedural paper grain, so a saved image feels like paper. */
+  function cardGround(ctx) {
+    ctx.fillStyle = '#F7F4EF';
+    ctx.fillRect(0, 0, CARD_W, CARD_H);
+    const g = ctx.createImageData(CARD_W, CARD_H);
+    const d = g.data;
+    for (let i = 0; i < d.length; i += 4) {
+      const v = 128 + (Math.random() - 0.5) * 46;
+      d[i] = d[i + 1] = d[i + 2] = v;
+      d[i + 3] = 12;
+    }
+    ctx.putImageData(g, 0, 0);
+    ctx.fillStyle = 'rgba(247,244,239,0.82)';
+    ctx.fillRect(0, 0, CARD_W, CARD_H);
+  }
+
+  /** A frame that reads as painted, not as a CSS border. */
+  function painterlyFrame(ctx) {
+    ctx.save();
+    // loose pigment along the edges, so the border feels brushed on
+    const edge = 30;
+    for (let i = 0; i < 150; i++) {
+      const side = i % 4;
+      const t = Math.random();
+      let x, y;
+      if (side === 0) { x = lerp(edge, CARD_W - edge, t); y = edge + (Math.random() - 0.5) * 16; }
+      else if (side === 1) { x = CARD_W - edge + (Math.random() - 0.5) * 16; y = lerp(edge, CARD_H - edge, t); }
+      else if (side === 2) { x = lerp(edge, CARD_W - edge, t); y = CARD_H - edge + (Math.random() - 0.5) * 16; }
+      else { x = edge + (Math.random() - 0.5) * 16; y = lerp(edge, CARD_H - edge, t); }
+      dab(ctx, x, y, 9 + Math.random() * 16,
+          PIGMENTS[Math.floor(Math.random() * PIGMENTS.length)], 0.05, 'soft');
+    }
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = 'rgba(34,32,28,0.18)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(38, 38, CARD_W - 76, CARD_H - 76);
+    ctx.strokeStyle = 'rgba(34,32,28,0.07)';
+    ctx.strokeRect(54, 54, CARD_W - 108, CARD_H - 108);
+    ctx.restore();
+  }
+
+  function wrapText(ctx, text, x, y, maxW, lineH) {
+    const words = String(text).split(' ');
+    let line = '';
+    const lines = [];
+    for (let i = 0; i < words.length; i++) {
+      const test = line ? line + ' ' + words[i] : words[i];
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = words[i]; }
+      else line = test;
+    }
+    if (line) lines.push(line);
+    lines.forEach(function (l, i) { ctx.fillText(l, x, y + i * lineH); });
+    return y + lines.length * lineH;
+  }
+
+  async function buildCanvasCard() {
+    if (document.fonts && document.fonts.ready) {
+      try { await document.fonts.ready; } catch (e) { /* fall back to system serif */ }
+    }
+    const c = document.createElement('canvas');
+    c.width = CARD_W; c.height = CARD_H;
+    const ctx = c.getContext('2d');
+
+    cardGround(ctx);
+    painterlyFrame(ctx);
+
+    ctx.fillStyle = '#8C877D';
+    ctx.font = '400 26px "Space Mono", ui-monospace, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('the canvas we made', CARD_W / 2, 138);
+
+    // the assembled painting (her signature is already composited into it)
+    const src = $('#paintingCanvas');
+    if (src && src.width) {
+      const box = { x: 110, y: 190, w: CARD_W - 220, h: 760 };
+      const ar = src.width / src.height;
+      let w = box.w, h = w / ar;
+      if (h > box.h) { h = box.h; w = h * ar; }
+      const x = box.x + (box.w - w) / 2;
+      const y = box.y + (box.h - h) / 2;
+      ctx.fillStyle = '#FCFAF6';
+      ctx.fillRect(x, y, w, h);
+      ctx.drawImage(src, x, y, w, h);
+      ctx.strokeStyle = 'rgba(34,32,28,0.2)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 10, y - 10, w + 20, h + 20);
+    }
+
+    ctx.fillStyle = '#22201C';
+    ctx.font = '500 46px Fraunces, Georgia, serif';
+    ctx.textAlign = 'center';
+    const endY = wrapText(ctx, SIGN_DONE, CARD_W / 2, 1055, CARD_W - 190, 60);
+
+    ctx.fillStyle = '#8C877D';
+    ctx.font = '400 24px "Space Mono", ui-monospace, monospace';
+    ctx.fillText(EXPORT_MARK, CARD_W / 2, Math.max(endY + 74, CARD_H - 108));
+
+    return new Promise(function (res) { c.toBlob(res, 'image/png'); });
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+
+  async function saveCanvasImage(share) {
+    let blob;
+    try { blob = await buildCanvasCard(); } catch (e) { blob = null; }
+    if (!blob) { toast("couldn't build the image — try again"); return; }
+    const name = 'our-canvas.png';
+    if (share && navigator.canShare) {
+      try {
+        const file = new File([blob], name, { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], title: 'Our canvas' });
+          return;
+        }
+      } catch (e) {
+        if (e && e.name === 'AbortError') return;
+      }
+    }
+    downloadBlob(blob, name);
+    toast('saved to your downloads 🤍');
+  }
+
+  function initSaveCanvas() {
+    const saveBtn = $('#saveCanvas');
+    const shareBtn = $('#shareCanvas');
+    if (saveBtn) saveBtn.addEventListener('click', function () { saveCanvasImage(false); });
+    if (shareBtn) shareBtn.addEventListener('click', function () { saveCanvasImage(true); });
+    // only offer Share where the browser can actually share a file
+    if (shareBtn && navigator.canShare) {
+      try {
+        const probe = new File([new Blob(['x'])], 'x.png', { type: 'image/png' });
+        if (navigator.canShare({ files: [probe] })) shareBtn.hidden = false;
+      } catch (e) { /* leave it hidden */ }
+    }
+  }
+
+  function revealSaveCanvas() {
+    const wrap = $('#saveCanvasWrap');
+    if (!wrap || !wrap.hidden) return;
+    wrap.hidden = false;
+    if (HAS_GSAP && !REDUCED) {
+      gsap.fromTo(wrap, { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.8, delay: 0.35, ease: EASE_OUT });
+    }
   }
 
 
@@ -1438,7 +1616,7 @@ Happy Friendship Day. 🎨`;
     }
 
     const panels = $$('.door__panel', door);
-    const tl = gsap.timeline({ delay: 0.85, defaults: { ease: 'power3.out' } });
+    const tl = gsap.timeline({ delay: 0.85, defaults: { ease: EASE_OUT } });
 
     gsap.set(door, { opacity: 0, y: 26 });
     gsap.set('.door__inner', { opacity: 0, scale: 0.94 });
@@ -1450,7 +1628,7 @@ Happy Friendship Day. 🎨`;
       // pigment floods out of the gap
       .fromTo('.door__spill',
         { opacity: 0, scale: 0.25 },
-        { opacity: 0.9, scale: 1.5, duration: 1.5, ease: 'power2.out' }, 0.4)
+        { opacity: 0.9, scale: 1.5, duration: 1.5, ease: EASE_SOFT }, 0.4)
       .to('.door__spill', { opacity: 0.34, duration: 1.2 }, 1.5)
       .to('.door__inner', { opacity: 1, scale: 1, duration: 0.9 }, 0.75)
       .add(function () {
@@ -1480,7 +1658,7 @@ Happy Friendship Day. 🎨`;
       gsap.to(el, {
         opacity: 1, y: 0,
         duration: REDUCED ? 0.5 : 1,
-        ease: 'power3.out',
+        ease: EASE_OUT,
         scrollTrigger: { trigger: el, start: 'top 88%', once: true }
       });
     });
@@ -1502,6 +1680,7 @@ Happy Friendship Day. 🎨`;
     initMuseum();
     initPainting();
     initSign();
+    initSaveCanvas();
     initReveals();
 
     if (HAS_GSAP) {

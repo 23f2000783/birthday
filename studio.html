@@ -20,6 +20,13 @@
 
 <body class="studio">
 
+<div class="living-bg" aria-hidden="true">
+  <span class="living-bg__blob living-bg__blob--1"></span>
+  <span class="living-bg__blob living-bg__blob--2"></span>
+  <span class="living-bg__blob living-bg__blob--3"></span>
+  <span class="living-bg__blob living-bg__blob--4"></span>
+</div>
+
 <div class="grain" aria-hidden="true"></div>
 <canvas id="ambient" aria-hidden="true"></canvas>
 
@@ -82,6 +89,14 @@
 
     <div class="game__foot">
       <p class="game__line" id="restoreLine" aria-live="polite"></p>
+
+      <!-- her own caption, typed onto the post before she saves it -->
+      <div class="caption-row" id="captionRow" hidden>
+        <label class="margin-note" for="captionInput" id="captionLabel">write your caption</label>
+        <input type="text" id="captionInput" maxlength="80" autocomplete="off"
+               aria-describedby="captionLabel">
+      </div>
+
       <div class="game__actions" id="restoreActions" hidden>
         <button type="button" class="btn btn--solid" data-save="restore">Save this</button>
         <button type="button" class="btn btn--ghost" data-share="restore" hidden>Share</button>
@@ -96,28 +111,59 @@
       <button type="button" class="icon-btn" data-back aria-label="Back to the studio">
         <span aria-hidden="true">←</span>
       </button>
-      <h2 class="game__title" id="mix-title">Colour Mix Lab</h2>
+      <h2 class="game__title" id="mix-title">Colour &amp; Coloring Lab</h2>
       <span class="game__meter margin-note" id="mixMeter">0/6</span>
     </div>
 
     <div class="game__stage mix__stage">
-      <div class="bowl-wrap">
-        <canvas id="mixBowl" role="img" aria-label="The mixing bowl."></canvas>
-        <p class="bowl-empty margin-note" id="bowlEmpty">tap two pigments</p>
+      <!-- two linked halves: make the colours, then paint with them -->
+      <div class="seg" role="tablist" aria-label="Lab">
+        <button type="button" class="seg__btn is-on" id="tabMix"
+                role="tab" aria-selected="true" aria-controls="panelMix">mix</button>
+        <button type="button" class="seg__btn" id="tabColor"
+                role="tab" aria-selected="false" aria-controls="panelColor">colour in</button>
       </div>
-      <p class="mix__memory" id="mixMemory" aria-live="polite"></p>
+
+      <div class="panel" id="panelMix" role="tabpanel" aria-labelledby="tabMix">
+        <div class="bowl-wrap">
+          <canvas id="mixBowl" role="img" aria-label="The mixing bowl."></canvas>
+          <p class="bowl-empty margin-note" id="bowlEmpty">tap two pigments</p>
+        </div>
+        <p class="mix__memory" id="mixMemory" aria-live="polite"></p>
+      </div>
+
+      <div class="panel" id="panelColor" role="tabpanel" aria-labelledby="tabColor" hidden>
+        <div class="sketch-frame" id="sketchFrame"></div>
+        <p class="sketch-name margin-note" id="sketchName"></p>
+        <div class="sketch-nav" id="sketchNav" role="group" aria-label="Choose a drawing"></div>
+      </div>
     </div>
 
     <div class="game__foot mix__foot">
-      <div class="wells" id="wells" role="group" aria-label="Pigment wells"></div>
-      <div class="mix__controls">
-        <button type="button" class="btn btn--ghost btn--sm" id="rinseBowl">Rinse the bowl</button>
-        <div class="game__actions" id="mixActions" hidden>
-          <button type="button" class="btn btn--solid btn--sm" data-save="mix">Save palette</button>
-          <button type="button" class="btn btn--ghost btn--sm" data-share="mix" hidden>Share</button>
+      <!-- mix controls -->
+      <div class="foot-part" id="footMix">
+        <div class="wells" id="wells" role="group" aria-label="Pigment wells"></div>
+        <div class="mix__controls">
+          <button type="button" class="btn btn--ghost btn--sm" id="rinseBowl">Rinse the bowl</button>
+          <div class="game__actions" id="mixActions" hidden>
+            <button type="button" class="btn btn--solid btn--sm" data-save="mix">Save palette</button>
+            <button type="button" class="btn btn--ghost btn--sm" data-share="mix" hidden>Share</button>
+          </div>
         </div>
       </div>
-      <ul class="palette-strip" id="paletteStrip" aria-label="Colours you've collected"></ul>
+
+      <!-- colouring controls -->
+      <div class="foot-part" id="footColor" hidden>
+        <div class="mix__controls">
+          <button type="button" class="btn btn--ghost btn--sm" id="undoFill">Undo</button>
+          <button type="button" class="btn btn--ghost btn--sm" id="resetSketch">Start over</button>
+          <button type="button" class="btn btn--solid btn--sm" data-save="sketch">Save drawing</button>
+          <button type="button" class="btn btn--ghost btn--sm" data-share="sketch" hidden>Share</button>
+        </div>
+      </div>
+
+      <p class="strip-label margin-note" id="stripLabel">your colours · tap one, then tap the drawing</p>
+      <ul class="palette-strip" id="paletteStrip" aria-label="Colours you can paint with"></ul>
     </div>
   </section>
 
@@ -148,11 +194,13 @@
            aria-labelledby="sceneTitle" preserveAspectRatio="xMidYMid meet">
         <title id="sceneTitle">A girl playing with her dog on a sunny hill.</title>
 
-        <!-- 1 · sky -->
+        <!-- 1 · sky — with a heart tucked into the cloud, for whoever looks -->
         <g data-region="1">
           <rect x="0" y="0" width="400" height="420" fill="#FBF1DF"/>
           <ellipse cx="80" cy="72" rx="46" ry="20" fill="#FFFFFF" opacity="0.72"/>
           <ellipse cx="112" cy="64" rx="30" ry="16" fill="#FFFFFF" opacity="0.72"/>
+          <path d="M92 70 C86 64 76 66 76 74 C76 82 86 88 92 95 C98 88 108 82 108 74 C108 66 98 64 92 70 Z"
+                fill="none" stroke="#E8B98A" stroke-width="2" opacity="0.5"/>
           <ellipse cx="300" cy="150" rx="38" ry="15" fill="#FFFFFF" opacity="0.5"/>
         </g>
 
@@ -172,19 +220,32 @@
           <circle cx="313" cy="63" r="10" fill="#FFFFFF" opacity="0.32"/>
         </g>
 
-        <!-- 3 · hill -->
+        <!-- 3 · hill — with three small flowers in it -->
         <g data-region="3">
           <path d="M0 336 C 70 314, 150 322, 210 330 C 275 339, 330 330, 400 312 L400 420 L0 420 Z" fill="#1F7A5A"/>
           <path d="M0 358 C 90 344, 170 354, 250 350 C 310 347, 355 340, 400 332 L400 420 L0 420 Z" fill="#19664B"/>
+          <g fill="#F2C14E">
+            <circle cx="112" cy="372" r="5"/><circle cx="104" cy="378" r="5"/><circle cx="120" cy="378" r="5"/>
+            <circle cx="340" cy="360" r="5"/><circle cx="332" cy="366" r="5"/><circle cx="348" cy="366" r="5"/>
+          </g>
+          <g fill="#E8552D">
+            <circle cx="112" cy="377" r="3.4"/><circle cx="340" cy="365" r="3.4"/>
+            <circle cx="58" cy="392" r="4"/><circle cx="50" cy="397" r="4"/><circle cx="66" cy="397" r="4"/>
+          </g>
         </g>
 
-        <!-- 4 · tree -->
+        <!-- 4 · tree — someone small already lives here -->
         <g data-region="4">
           <rect x="44" y="236" width="15" height="104" rx="7" fill="#7A5230"/>
           <circle cx="52" cy="216" r="42" fill="#1F7A5A"/>
           <circle cx="24" cy="242" r="28" fill="#19664B"/>
           <circle cx="82" cy="244" r="26" fill="#19664B"/>
           <circle cx="60" cy="192" r="24" fill="#2A8E6B"/>
+          <ellipse cx="74" cy="176" rx="11" ry="8" fill="#E8552D" transform="rotate(-12 74 176)"/>
+          <circle cx="83" cy="171" r="6" fill="#E8552D"/>
+          <path d="M88 170 l6 2 l-6 2 Z" fill="#F2C14E"/>
+          <path d="M66 179 l-9 4 l8 1 Z" fill="#D3441F"/>
+          <circle cx="85" cy="169" r="1.6" fill="#22201C"/>
         </g>
 
         <!-- 5 · dog body + legs -->
@@ -206,6 +267,8 @@
             <ellipse cx="236" cy="256" rx="9" ry="17" fill="#D9A431" transform="rotate(-24 236 256)"/>
             <ellipse cx="266" cy="256" rx="9" ry="17" fill="#D9A431" transform="rotate(18 266 256)"/>
           </g>
+          <path d="M258 288 a22 22 0 0 1 -30 4 l2 -7 a22 22 0 0 0 27 -4 Z" fill="#E8552D"/>
+          <circle cx="243" cy="298" r="4.5" fill="#F2C14E"/>
           <ellipse cx="234" cy="286" rx="14" ry="11" fill="#F8DA9A"/>
           <circle cx="224" cy="284" r="4.6" fill="#22201C"/>
           <path d="M228 292 q 6 5 12 0" fill="none" stroke="#22201C" stroke-width="2.4" stroke-linecap="round"/>
@@ -245,7 +308,7 @@
           <circle cx="165" cy="207" r="4.6" fill="#E8552D" opacity="0.3"/>
         </g>
 
-        <!-- 9 · the ball + a little sparkle -->
+        <!-- 9 · the ball, a sparkle, and a butterfly that wandered in -->
         <g data-region="9">
           <circle id="sceneBall" cx="206" cy="182" r="13" fill="#2B4A8B"/>
           <circle cx="202" cy="177" r="4" fill="#FFFFFF" opacity="0.45"/>
@@ -253,6 +316,13 @@
             <circle cx="196" cy="146" r="3.4"/>
             <circle cx="224" cy="156" r="2.6"/>
             <circle cx="186" cy="166" r="2.2"/>
+          </g>
+          <g id="sceneButterfly">
+            <path d="M330 232 C318 216 300 216 300 230 C300 244 318 242 330 232 Z" fill="#F2C14E"/>
+            <path d="M330 232 C342 216 360 216 360 230 C360 244 342 242 330 232 Z" fill="#F2C14E"/>
+            <ellipse cx="330" cy="234" rx="3.2" ry="8" fill="#22201C"/>
+            <path d="M328 226 q-5 -8 -10 -10M332 226 q5 -8 10 -10"
+                  fill="none" stroke="#22201C" stroke-width="1.8" stroke-linecap="round"/>
           </g>
         </g>
       </svg>
@@ -272,6 +342,358 @@
   </section>
 
 </main>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SKETCHES_SWAP · The six line-art drawings for the Coloring Lab.
+     Each <svg data-sketch data-name> is one drawing.
+       · class="rg"  → a fillable region (must be a CLOSED shape)
+       · class="ln"  → a drawn detail line, never fillable (faces, stems)
+       · class="dt"  → a filled ink dot, never fillable (eyes, spots)
+     studio.js wires these up and applies the line-art look as attributes, so
+     replacement art needs no styling of its own. Keep viewBox="0 0 300 300".
+     There is something small and hidden in every one of these.
+     ═══════════════════════════════════════════════════════════════════ -->
+<div class="sketch-source" id="sketchSource" hidden aria-hidden="true">
+
+  <!-- 1 · a girl playing — ball, butterfly, and a ladybug in the grass -->
+  <svg data-sketch="1" data-name="a girl playing" viewBox="0 0 300 300">
+    <rect class="rg" x="0" y="0" width="300" height="300"/>
+    <circle class="rg" cx="252" cy="42" r="22"/>
+    <g class="ln">
+      <path d="M252 8v-8M252 84v8M210 42h-8M294 42h8M222 12l-6-6M282 72l6 6M282 12l6-6M222 72l-6 6"/>
+    </g>
+    <path class="rg" d="M0 248 Q80 236 150 244 T300 238 L300 300 L0 300 Z"/>
+    <path class="rg" d="M80 104 C78 62 146 62 144 104 C149 134 143 160 134 172 L126 144 L98 144 L90 172 C81 160 75 134 80 104 Z"/>
+    <circle class="rg" cx="112" cy="104" r="28"/>
+    <path class="rg" d="M84 100 C84 74 140 74 140 100 C133 86 122 80 112 88 C102 80 91 86 84 100 Z"/>
+    <circle class="rg" cx="93" cy="114" r="5"/>
+    <circle class="rg" cx="131" cy="114" r="5"/>
+    <circle class="dt" cx="103" cy="105" r="3.4"/>
+    <circle class="dt" cx="121" cy="105" r="3.4"/>
+    <path class="ln" d="M104 117 q8 8 16 0"/>
+    <rect class="rg" x="105" y="128" width="14" height="13"/>
+    <path class="rg" d="M82 210 C84 170 94 141 112 139 C130 141 140 170 142 210 Z"/>
+    <path class="rg" d="M97 143 Q112 156 127 143 Q112 162 97 143 Z"/>
+    <path class="ln" d="M84 202 q14 8 28 0 t28 0"/>
+    <path class="rg" d="M132 148 C150 142 166 126 176 108 L188 116 C176 136 156 154 138 160 Z"/>
+    <circle class="rg" cx="183" cy="110" r="10"/>
+    <path class="rg" d="M94 148 C82 158 74 174 72 190 L58 186 C62 164 74 148 88 138 Z"/>
+    <circle class="rg" cx="65" cy="192" r="10"/>
+    <path class="rg" d="M98 210 L94 250 L110 250 L112 210 Z"/>
+    <path class="rg" d="M120 210 L130 246 L146 242 L134 210 Z"/>
+    <ellipse class="rg" cx="101" cy="254" rx="14" ry="8"/>
+    <ellipse class="rg" cx="141" cy="248" rx="14" ry="8" transform="rotate(14 141 248)"/>
+    <circle class="rg" cx="212" cy="92" r="23"/>
+    <path class="rg" d="M189 92 Q212 74 235 92 Q212 110 189 92 Z"/>
+    <path class="rg" d="M232 150 C220 132 202 132 202 146 C202 160 220 158 232 150 Z"/>
+    <path class="rg" d="M232 150 C244 132 262 132 262 146 C262 160 244 158 232 150 Z"/>
+    <ellipse class="dt" cx="232" cy="152" rx="3.5" ry="9"/>
+    <path class="ln" d="M230 143 q-6 -9 -12 -11M234 143 q6 -9 12 -11"/>
+    <ellipse class="rg" cx="42" cy="230" rx="6" ry="9"/>
+    <ellipse class="rg" cx="54" cy="240" rx="9" ry="6"/>
+    <ellipse class="rg" cx="42" cy="250" rx="6" ry="9"/>
+    <ellipse class="rg" cx="30" cy="240" rx="9" ry="6"/>
+    <circle class="rg" cx="42" cy="240" r="6"/>
+    <path class="ln" d="M42 250 v22"/>
+    <ellipse class="rg" cx="228" cy="258" rx="11" ry="8"/>
+    <path class="rg" d="M217 258 a11 8 0 0 1 8 -7.6 l0 15.2 a11 8 0 0 1 -8 -7.6 Z"/>
+    <g class="dt">
+      <circle cx="231" cy="254" r="2"/><circle cx="234" cy="261" r="2"/><circle cx="227" cy="262" r="2"/>
+    </g>
+    <path class="ln" d="M228 250 v16"/>
+    <g class="ln">
+      <path d="M12 262 q4 -12 8 0M170 258 q4 -12 8 0M262 262 q4 -12 8 0"/>
+    </g>
+  </svg>
+
+  <!-- 2 · a quiet place — a shrine, two lit diyas, and a bird on the finial -->
+  <svg data-sketch="2" data-name="a quiet place" viewBox="0 0 300 300">
+    <rect class="rg" x="0" y="0" width="300" height="300"/>
+    <circle class="rg" cx="56" cy="52" r="21"/>
+    <path class="rg" d="M0 254 H300 V300 H0 Z"/>
+    <path class="rg" d="M98 158 C102 112 122 66 150 38 C178 66 198 112 202 158 Z"/>
+    <path class="ln" d="M114 152 q36 -14 72 0M122 124 q28 -12 56 0M132 96 q18 -8 36 0"/>
+    <rect class="rg" x="104" y="158" width="92" height="86"/>
+    <path class="rg" d="M132 244 V198 a18 18 0 0 1 36 0 V244 Z"/>
+    <path class="ln" d="M150 200 v44"/>
+    <path class="rg" d="M110 178 h20 v22 h-20 Z"/>
+    <path class="rg" d="M170 178 h20 v22 h-20 Z"/>
+    <path class="ln" d="M120 178 v22M110 189 h20M180 178 v22M170 189 h20"/>
+    <ellipse class="rg" cx="150" cy="30" rx="9" ry="11"/>
+    <path class="ln" d="M150 19 v-9"/>
+    <ellipse class="rg" cx="168" cy="15" rx="10" ry="7.5" transform="rotate(-14 168 15)"/>
+    <circle class="rg" cx="158" cy="9" r="5.5"/>
+    <path class="rg" d="M153 9 l-6 2 l6 2 Z"/>
+    <path class="rg" d="M176 19 l12 5 l-11 2 Z"/>
+    <path class="ln" d="M166 13 q6 3 9 8"/>
+    <circle class="dt" cx="157" cy="8" r="1.5"/>
+    <rect class="rg" x="60" y="196" width="26" height="48"/>
+    <rect class="rg" x="54" y="186" width="38" height="12" rx="3"/>
+    <rect class="rg" x="214" y="196" width="26" height="48"/>
+    <rect class="rg" x="208" y="186" width="38" height="12" rx="3"/>
+    <rect class="rg" x="86" y="244" width="128" height="12" rx="3"/>
+    <rect class="rg" x="72" y="256" width="156" height="12" rx="3"/>
+    <path class="rg" d="M104 256 a13 8 0 0 0 26 0 Z"/>
+    <path class="rg" d="M117 244 q7 -8 0 -14 q-7 6 0 14 Z"/>
+    <path class="rg" d="M170 256 a13 8 0 0 0 26 0 Z"/>
+    <path class="rg" d="M183 244 q7 -8 0 -14 q-7 6 0 14 Z"/>
+    <path class="rg" d="M258 254 C252 236 262 210 272 208 C282 210 292 236 286 254 Z"/>
+    <rect class="rg" x="268" y="254" width="9" height="16"/>
+    <g class="ln"><path d="M20 60 q8 -10 16 0M262 60 q8 -10 16 0"/></g>
+  </svg>
+
+  <!-- 3 · somewhere green — snow caps, a river, and a snail on a rock -->
+  <svg data-sketch="3" data-name="somewhere green" viewBox="0 0 300 300">
+    <rect class="rg" x="0" y="0" width="300" height="300"/>
+    <circle class="rg" cx="240" cy="50" r="23"/>
+    <g class="ln"><path d="M40 62 q9 -11 18 0M64 56 q9 -11 18 0M52 74 q9 -11 18 0"/></g>
+    <path class="rg" d="M0 186 L74 106 L148 186 Z"/>
+    <path class="rg" d="M52 128 L74 106 L96 128 Q84 120 74 124 Q64 120 52 128 Z"/>
+    <path class="rg" d="M112 186 L198 92 L284 186 Z"/>
+    <path class="rg" d="M172 118 L198 92 L224 118 Q210 108 198 113 Q186 108 172 118 Z"/>
+    <path class="rg" d="M0 186 H300 V300 H0 Z"/>
+    <path class="rg" d="M138 186 Q158 232 126 300 L186 300 Q168 232 180 186 Z"/>
+    <path class="ln" d="M152 202 q10 20 -2 40M166 214 q8 18 0 34"/>
+    <rect class="rg" x="48" y="216" width="14" height="46" rx="3"/>
+    <circle class="rg" cx="55" cy="208" r="24"/>
+    <circle class="rg" cx="36" cy="222" r="16"/>
+    <circle class="rg" cx="74" cy="222" r="16"/>
+    <rect class="rg" x="252" y="224" width="12" height="40" rx="3"/>
+    <circle class="rg" cx="258" cy="216" r="20"/>
+    <circle class="rg" cx="242" cy="228" r="13"/>
+    <ellipse class="rg" cx="120" cy="278" rx="30" ry="13"/>
+    <path class="rg" d="M110 276 q-16 1 -20 7 q18 5 24 -3 Z"/>
+    <path class="ln" d="M92 276 q-4 -8 -10 -10M97 274 q-3 -9 -9 -12"/>
+    <circle class="rg" cx="124" cy="266" r="12"/>
+    <path class="ln" d="M124 266 m0 -8 a8 8 0 1 1 -6 3 a5 5 0 1 0 5 2"/>
+    <g class="ln">
+      <path d="M198 244 q8 -10 16 0M222 252 q7 -9 14 0M28 250 q8 -10 16 0"/>
+    </g>
+    <ellipse class="rg" cx="252" cy="284" rx="22" ry="11"/>
+    <ellipse class="rg" cx="34" cy="286" rx="24" ry="12"/>
+  </svg>
+
+  <!-- 4 · the two of us — leaning in for the photo. There's a cat behind the
+       table leg, a heart in the frame on the wall, and a plant nobody waters. -->
+  <svg data-sketch="4" data-name="the two of us" viewBox="0 0 300 300">
+    <rect class="rg" x="0" y="0" width="300" height="300"/>
+
+    <!-- the window, and the morning outside it -->
+    <rect class="rg" x="204" y="22" width="80" height="72" rx="4"/>
+    <path class="rg" d="M208 26 h72 v64 h-72 Z"/>
+    <circle class="rg" cx="226" cy="44" r="10"/>
+    <path class="rg" d="M208 90 v-12 q20 -18 36 -4 q16 12 36 -6 v22 Z"/>
+    <path class="ln" d="M244 26 v64M208 58 h72"/>
+
+    <!-- a framed heart on the wall -->
+    <rect class="rg" x="20" y="30" width="56" height="48" rx="3"/>
+    <path class="rg" d="M48 70 C37 61 30 54 30 47 a9 9 0 0 1 18 -3 a9 9 0 0 1 18 3 c0 7 -7 14 -18 23 Z"/>
+    <path class="ln" d="M48 82 v6"/>
+
+    <!-- the plant nobody waters -->
+    <path class="ln" d="M150 2 v10"/>
+    <path class="rg" d="M138 14 h24 l-3 15 h-18 Z"/>
+    <path class="rg" d="M142 29 C133 39 131 51 136 60 C143 52 145 39 142 29 Z"/>
+    <path class="rg" d="M158 29 C167 39 169 51 164 60 C157 52 155 39 158 29 Z"/>
+    <path class="rg" d="M150 31 C147 42 148 54 150 62 C153 54 154 42 150 31 Z"/>
+
+    <!-- ══ her — leaning in from the left ══ -->
+    <g transform="rotate(4 96 244)">
+      <path class="rg" d="M67 112 C65 64 127 64 125 112 C130 148 124 180 115 196 L107 160 L85 160 L77 196 C68 180 62 148 67 112 Z"/>
+      <rect class="rg" x="89" y="128" width="15" height="16"/>
+      <path class="rg" d="M62 238 C64 194 75 152 96 150 C117 152 127 194 129 238 Z"/>
+      <path class="rg" d="M82 152 Q96 167 110 152 Q96 184 82 152 Z"/>
+      <path class="ln" d="M69 206 q13 7 27 0 t27 0"/>
+      <ellipse class="rg" cx="69" cy="110" rx="5.5" ry="8"/>
+      <ellipse class="rg" cx="123" cy="110" rx="5.5" ry="8"/>
+      <circle class="rg" cx="96" cy="106" r="27"/>
+      <path class="rg" d="M69 102 C69 72 123 72 123 102 C117 86 107 80 96 88 C85 80 75 86 69 102 Z"/>
+      <path class="rg" d="M120 100 C129 112 129 130 123 142 C119 128 118 114 120 100 Z"/>
+      <circle class="rg" cx="77" cy="116" r="5"/>
+      <circle class="rg" cx="115" cy="116" r="5"/>
+      <circle class="dt" cx="87" cy="106" r="3.6"/>
+      <circle class="dt" cx="105" cy="106" r="3.6"/>
+      <g class="ln">
+        <path d="M80 96 q7 -6 14 -2M98 94 q7 -4 14 3"/>
+        <path d="M81 100 l-4 -3M111 100 l4 -3"/>
+        <path d="M94 112 q3 4 6 1"/>
+        <path d="M87 122 q9 8 18 -1"/>
+      </g>
+      <path class="rg" d="M71 170 C61 190 59 210 67 224 L53 230 C43 212 45 186 57 166 Z"/>
+      <ellipse class="rg" cx="57" cy="232" rx="11" ry="8"/>
+      <path class="rg" d="M121 170 C131 188 135 208 130 224 L144 228 C150 206 144 182 134 166 Z"/>
+      <ellipse class="rg" cx="138" cy="232" rx="11" ry="8"/>
+      <path class="ln" d="M61 220 q8 4 12 0M127 218 q8 4 12 0"/>
+    </g>
+
+    <!-- ══ him — leaning in from the right ══ -->
+    <g transform="rotate(-4 206 244)">
+      <rect class="rg" x="198" y="128" width="15" height="16"/>
+      <path class="rg" d="M173 238 C175 194 186 152 206 150 C226 152 237 194 239 238 Z"/>
+      <path class="rg" d="M192 152 L206 172 L220 152 L214 150 L206 162 L198 150 Z"/>
+      <g class="dt">
+        <circle cx="206" cy="184" r="3"/><circle cx="206" cy="202" r="3"/><circle cx="206" cy="220" r="3"/>
+      </g>
+      <ellipse class="rg" cx="180" cy="110" rx="5.5" ry="8"/>
+      <ellipse class="rg" cx="232" cy="110" rx="5.5" ry="8"/>
+      <circle class="rg" cx="206" cy="106" r="27"/>
+      <path class="rg" d="M179 104 C179 70 233 70 233 104 C229 88 220 80 206 84 C192 80 183 88 179 104 Z"/>
+      <path class="rg" d="M222 78 C232 70 240 74 240 82 C234 78 228 78 222 84 Z"/>
+      <circle class="rg" cx="187" cy="116" r="5"/>
+      <circle class="rg" cx="225" cy="116" r="5"/>
+      <circle class="dt" cx="197" cy="106" r="3.6"/>
+      <circle class="dt" cx="215" cy="106" r="3.6"/>
+      <g class="ln">
+        <path d="M190 95 q7 -5 14 -1M211 94 q7 -4 14 4"/>
+        <path d="M204 112 q3 4 6 1"/>
+        <path d="M197 122 q9 8 18 -1"/>
+      </g>
+      <path class="rg" d="M231 170 C241 190 243 210 235 224 L249 230 C259 212 257 186 245 166 Z"/>
+      <ellipse class="rg" cx="245" cy="232" rx="11" ry="8"/>
+      <path class="rg" d="M181 170 C171 188 167 208 172 224 L158 228 C152 206 158 182 168 166 Z"/>
+      <ellipse class="rg" cx="164" cy="232" rx="11" ry="8"/>
+      <path class="ln" d="M229 220 q8 4 12 0M170 218 q8 4 12 0"/>
+    </g>
+
+    <!-- ══ the table ══ -->
+    <rect class="rg" x="10" y="238" width="280" height="18" rx="7"/>
+    <rect class="rg" x="34" y="256" width="232" height="44"/>
+    <path class="ln" d="M34 272 h232M34 288 h232"/>
+
+    <!-- her cup -->
+    <path class="rg" d="M24 212 h24 v15 a12 9 0 0 1 -24 0 Z"/>
+    <path class="rg" d="M48 214 a8 6 0 0 1 0 13 Z"/>
+    <ellipse class="rg" cx="36" cy="236" rx="20" ry="5"/>
+    <!-- his cup -->
+    <path class="rg" d="M252 212 h24 v15 a12 9 0 0 1 -24 0 Z"/>
+    <path class="rg" d="M276 214 a8 6 0 0 1 0 13 Z"/>
+    <ellipse class="rg" cx="264" cy="236" rx="20" ry="5"/>
+    <g class="ln">
+      <path d="M31 206 q-5 -9 0 -16M41 206 q-5 -9 0 -16M259 206 q-5 -9 0 -16M269 206 q-5 -9 0 -16"/>
+    </g>
+
+    <!-- one slice, right in the middle where it belongs -->
+    <ellipse class="rg" cx="151" cy="234" rx="24" ry="6"/>
+    <path class="rg" d="M137 232 L151 208 L165 232 Z"/>
+    <path class="ln" d="M142 223 h18"/>
+    <circle class="rg" cx="151" cy="204" r="4.5"/>
+
+    <!-- ══ the cat, who came to see what the fuss was about ══ -->
+    <path class="rg" d="M30 292 C20 282 22 264 32 258 C39 267 39 284 34 292 Z"/>
+    <ellipse class="rg" cx="52" cy="276" rx="17" ry="15"/>
+    <circle class="rg" cx="54" cy="254" r="13"/>
+    <path class="rg" d="M44 246 l-3 -13 l12 7 Z"/>
+    <path class="rg" d="M64 246 l3 -13 l-12 7 Z"/>
+    <g class="dt">
+      <circle cx="49" cy="253" r="2.3"/><circle cx="59" cy="253" r="2.3"/>
+      <path d="M52 258 h4 l-2 3 Z"/>
+    </g>
+    <g class="ln">
+      <path d="M47 259 l-10 -2M47 261 l-10 2M61 259 l10 -2M61 261 l10 2"/>
+    </g>
+  </svg>
+
+  <!-- 5 · her and her dog — a bone, paw prints, and a butterfly on his nose -->
+  <svg data-sketch="5" data-name="her and her dog" viewBox="0 0 300 300">
+    <rect class="rg" x="0" y="0" width="300" height="300"/>
+    <circle class="rg" cx="46" cy="46" r="20"/>
+    <g class="ln"><path d="M212 44 q9 -11 18 0M236 38 q9 -11 18 0M224 56 q9 -11 18 0"/></g>
+    <path class="rg" d="M0 238 Q80 226 152 234 T300 226 L300 300 L0 300 Z"/>
+    <path class="rg" d="M74 106 C72 64 134 64 132 106 C137 136 131 162 122 174 L114 144 L90 144 L82 174 C73 162 67 136 74 106 Z"/>
+    <circle class="rg" cx="103" cy="106" r="27"/>
+    <path class="rg" d="M77 102 C77 74 129 74 129 102 C123 86 113 80 103 88 C93 80 83 86 77 102 Z"/>
+    <circle class="rg" cx="86" cy="116" r="4.6"/>
+    <circle class="rg" cx="120" cy="116" r="4.6"/>
+    <circle class="dt" cx="95" cy="107" r="3.2"/>
+    <circle class="dt" cx="112" cy="107" r="3.2"/>
+    <path class="ln" d="M96 119 q7 7 14 0"/>
+    <path class="rg" d="M76 236 C78 186 88 148 103 146 C118 148 128 186 130 236 Z"/>
+    <path class="ln" d="M78 226 q12 7 25 0 t25 0"/>
+    <path class="rg" d="M80 154 C68 166 62 182 62 196 L48 194 C50 174 60 156 74 146 Z"/>
+    <circle class="rg" cx="54" cy="198" r="9"/>
+    <path class="rg" d="M126 154 C140 166 150 178 156 190 L144 198 C136 182 126 170 116 160 Z"/>
+    <circle class="rg" cx="150" cy="196" r="9"/>
+    <path class="rg" d="M96 236 L94 264 L110 264 L110 236 Z"/>
+    <path class="rg" d="M114 236 L116 262 L132 262 L128 236 Z"/>
+    <ellipse class="rg" cx="101" cy="268" rx="12" ry="7"/>
+    <ellipse class="rg" cx="125" cy="266" rx="12" ry="7"/>
+    <ellipse class="rg" cx="216" cy="206" rx="41" ry="27"/>
+    <path class="rg" d="M252 194 q24 -6 22 -40 q-18 20 -30 28 Z"/>
+    <rect class="rg" x="192" y="228" width="14" height="30" rx="7"/>
+    <rect class="rg" x="228" y="228" width="14" height="30" rx="7"/>
+    <ellipse class="rg" cx="196" cy="260" rx="10" ry="5"/>
+    <ellipse class="rg" cx="234" cy="260" rx="10" ry="5"/>
+    <circle class="rg" cx="176" cy="180" r="22"/>
+    <ellipse class="rg" cx="164" cy="170" rx="9" ry="15" transform="rotate(-32 164 170)"/>
+    <ellipse class="rg" cx="192" cy="166" rx="9" ry="15" transform="rotate(22 192 166)"/>
+    <ellipse class="rg" cx="156" cy="190" rx="13" ry="10"/>
+    <ellipse class="dt" cx="147" cy="187" rx="4" ry="3.2"/>
+    <path class="ln" d="M152 194 q5 5 10 1"/>
+    <circle class="dt" cx="172" cy="176" r="3"/>
+    <circle class="dt" cx="188" cy="175" r="3"/>
+    <path class="rg" d="M160 200 a22 22 0 0 0 34 -2 l0 8 a22 22 0 0 1 -34 2 Z"/>
+    <circle class="rg" cx="177" cy="208" r="5"/>
+    <path class="rg" d="M139 146 C132 136 122 136 122 144 C122 152 132 152 139 146 Z"/>
+    <path class="rg" d="M139 146 C146 136 156 136 156 144 C156 152 146 152 139 146 Z"/>
+    <ellipse class="dt" cx="139" cy="147" rx="2.6" ry="6"/>
+    <path class="ln" d="M137 139 q-5 -7 -10 -9M141 139 q5 -7 10 -9"/>
+    <path class="rg" d="M244 276 a7 6 0 0 1 0 -12 a7 6 0 0 1 9 3 h16 a7 6 0 0 1 9 -3 a7 6 0 0 1 0 12 a7 6 0 0 1 -9 -3 h-16 a7 6 0 0 1 -9 3 Z"/>
+    <g class="dt">
+      <ellipse cx="164" cy="272" rx="5" ry="4"/>
+      <circle cx="159" cy="265" r="2"/><circle cx="164" cy="263" r="2"/><circle cx="169" cy="265" r="2"/>
+      <ellipse cx="186" cy="282" rx="5" ry="4"/>
+      <circle cx="181" cy="275" r="2"/><circle cx="186" cy="273" r="2"/><circle cx="191" cy="275" r="2"/>
+    </g>
+  </svg>
+
+  <!-- 6 · go fly — snow caps, a falling feather, and a heart in the cloud -->
+  <svg data-sketch="6" data-name="go fly" viewBox="0 0 300 300">
+    <rect class="rg" x="0" y="0" width="300" height="300"/>
+    <circle class="rg" cx="252" cy="46" r="23"/>
+    <g class="ln"><path d="M252 12v-8M252 80v8M214 46h-8M290 46h8M226 20l-6-6M278 72l6 6"/></g>
+    <path class="rg" d="M34 62 a18 18 0 0 1 34 -8 a15 15 0 0 1 26 8 Z"/>
+    <path class="ln" d="M56 52 q5 -6 10 -1 q5 5 -1 10 l-9 9 l-9 -9 q-6 -5 -1 -10 q5 -5 10 1 Z"/>
+    <path class="rg" d="M180 40 a14 14 0 0 1 26 -6 a12 12 0 0 1 20 6 Z"/>
+    <path class="rg" d="M150 116 C130 96 104 80 66 74 C90 94 116 110 142 126 L150 132 L158 126 C184 110 210 94 234 74 C196 80 170 96 150 116 Z"/>
+    <circle class="rg" cx="150" cy="124" r="11"/>
+    <path class="rg" d="M161 122 l14 5 l-14 5 Z"/>
+    <circle class="dt" cx="154" cy="120" r="2.4"/>
+    <path class="rg" d="M240 168 C233 160 222 152 206 149 C216 158 227 165 237 172 L240 174 L243 172 C253 165 264 158 274 149 C258 152 247 160 240 168 Z"/>
+    <path class="rg" d="M66 182 C61 176 53 170 41 168 C48 174 56 179 64 184 L66 186 L68 184 C76 179 84 174 91 168 C79 170 71 176 66 182 Z"/>
+    <path class="rg" d="M0 240 L68 158 L136 240 Z"/>
+    <path class="rg" d="M46 186 L68 158 L90 186 Q78 176 68 181 Q58 176 46 186 Z"/>
+    <path class="rg" d="M92 248 L180 136 L268 248 Z"/>
+    <path class="rg" d="M152 172 L180 136 L208 172 Q192 160 180 166 Q168 160 152 172 Z"/>
+    <path class="rg" d="M204 252 L262 184 L300 252 Z"/>
+    <path class="rg" d="M240 214 L262 184 L282 214 Q270 205 262 209 Q252 205 240 214 Z"/>
+    <path class="rg" d="M0 248 H300 V300 H0 Z"/>
+    <path class="rg" d="M52 116 C44 132 46 152 56 162 C66 152 68 132 60 116 Z"/>
+    <path class="ln" d="M56 122 v36M56 130 l-7 6M56 140 l-7 6M56 130 l7 6M56 140 l7 6"/>
+    <g class="ln"><path d="M28 268 q9 -11 18 0M56 274 q9 -11 18 0M254 270 q9 -11 18 0"/></g>
+  </svg>
+</div>
+
+<!-- everything she saves also lands here -->
+<button type="button" class="collection-btn" id="collectionBtn" hidden
+        aria-expanded="false" aria-controls="tray">
+  my collection <span class="collection-btn__n" id="collectionN">0</span>
+</button>
+
+<aside class="tray" id="tray" aria-label="My Collection">
+  <div class="tray__head">
+    <h2 class="tray__title" id="trayTitle">My Collection</h2>
+    <button type="button" class="icon-btn" id="trayClose" aria-label="Close the collection">
+      <span aria-hidden="true">×</span>
+    </button>
+  </div>
+  <div class="tray__items" id="trayItems"></div>
+</aside>
+
+<!-- ambient studio sound: off until she asks for it -->
+<button type="button" class="sound-btn" id="soundBtn" aria-pressed="false"
+        aria-label="Play quiet studio sound">
+  <span aria-hidden="true" id="soundIcon">♪</span>
+</button>
 
 <!-- toast for save/share feedback -->
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

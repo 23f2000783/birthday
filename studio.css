@@ -16,14 +16,6 @@ body.studio {
 
 .studio .noscript { margin: 4rem 1.25rem; }
 
-/* solid variant of the shared .btn, for primary actions in here */
-.btn--solid {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--gesso);
-}
-.btn--solid:hover { background: #2E2B26; border-color: #2E2B26; color: var(--gesso); }
-.btn:disabled { opacity: 0.4; pointer-events: none; }
 
 .icon-btn {
   display: inline-grid;
@@ -81,14 +73,16 @@ body.studio {
 .view { display: none; }
 .view.is-active { display: block; }
 
-/* a game takes the whole screen, like an app, and scrolls inside itself */
+/* a game takes the whole screen, like an app, and scrolls inside itself.
+   Translucent, so the living background keeps drifting underneath. */
 .view--game.is-active {
   position: fixed;
   inset: 0;
   z-index: 20;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  background: var(--gesso);
+  background: rgba(247, 244, 239, 0.84);
+  backdrop-filter: blur(2px);
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
            env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
@@ -98,7 +92,7 @@ body.studio {
   max-width: 760px;
   margin-inline: auto;
   padding: clamp(3.5rem, 13vh, 6rem) max(1.25rem, env(safe-area-inset-left))
-           calc(3rem + env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-right));
+           calc(5.5rem + env(safe-area-inset-bottom)) max(1.25rem, env(safe-area-inset-right));
 }
 
 .landing__head { margin-bottom: clamp(2.25rem, 8vw, 3.5rem); }
@@ -229,7 +223,6 @@ body.studio {
   gap: 0.85rem;
   padding: 0.7rem 0.9rem;
   border-bottom: 1px solid var(--hairline-2);
-  background: var(--gesso);
 }
 .game__title {
   flex: 1;
@@ -260,13 +253,14 @@ body.studio {
   padding: 0.9rem 0.9rem 0.4rem;
 }
 
+/* the bottom padding clears the fixed sound / collection buttons, so nothing
+   she needs to tap ever sits underneath them */
 .game__foot {
-  padding: 0.6rem 0.9rem calc(1rem + env(safe-area-inset-bottom));
+  padding: 0.6rem 0.9rem calc(3.9rem + env(safe-area-inset-bottom));
   display: grid;
   gap: 0.85rem;
   justify-items: center;
   border-top: 1px solid var(--hairline-2);
-  background: var(--gesso);
 }
 
 .game__line {
@@ -323,6 +317,29 @@ body.studio {
   transition: opacity 0.5s var(--ease-soft);
 }
 .restore-hint.is-gone { opacity: 0; }
+
+/* her caption, typed straight onto the post */
+.caption-row {
+  display: grid;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 380px;
+  justify-items: start;
+}
+.caption-row[hidden] { display: none; }
+.caption-row input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.6rem 0.9rem;
+  background: var(--card);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 0.98rem;
+}
+.caption-row input::placeholder { color: var(--ink-faint); }
+.caption-row input:focus-visible { border-color: var(--ultramarine); }
 
 /* ─────────────────────── 2 · COLOUR MIX LAB ─────────────────────── */
 .mix__stage { justify-content: center; gap: 1rem; }
@@ -409,13 +426,248 @@ body.studio {
   margin: 0;
   padding: 0;
 }
-.palette-strip li {
-  width: 30px; height: 30px;
+.palette-strip li { display: contents; }
+.swatch-btn {
+  position: relative;
+  width: 34px; height: 34px;
+  padding: 0;
   border-radius: 4px;
   border: 1px solid rgba(34,32,28,0.14);
   background: var(--pig);
   box-shadow: 0 3px 8px -4px rgba(34,32,28,0.5);
+  cursor: pointer;
+  transition: transform 0.2s var(--ease-out), box-shadow 0.25s var(--ease-soft);
+  -webkit-tap-highlight-color: transparent;
 }
+.swatch-btn:hover { transform: translateY(-2px); }
+.swatch-btn[aria-pressed="true"] {
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 2px var(--gesso), 0 0 0 3.5px var(--ink), 0 6px 12px -6px rgba(34,32,28,0.6);
+}
+
+.strip-label { text-align: center; }
+
+/* ── the two halves of the lab ── */
+.seg {
+  display: inline-flex;
+  padding: 3px;
+  gap: 3px;
+  border: 1px solid var(--hairline);
+  border-radius: 100px;
+  background: rgba(255,255,255,0.5);
+}
+.seg__btn {
+  min-height: 38px;
+  padding: 0.4rem 1.1rem;
+  border: 0;
+  border-radius: 100px;
+  background: transparent;
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: background-color 0.3s var(--ease-soft), color 0.3s var(--ease-soft);
+  -webkit-tap-highlight-color: transparent;
+}
+.seg__btn.is-on { background: var(--ink); color: var(--gesso); }
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 0;
+}
+.panel[hidden] { display: none; }
+.foot-part[hidden] { display: none; }
+.foot-part { display: grid; gap: 0.8rem; justify-items: center; width: 100%; }
+
+/* ── the sketch being coloured ── */
+.sketch-frame {
+  width: min(100%, 40vh);
+  aspect-ratio: 1;
+  border: 1px solid var(--hairline);
+  border-radius: 2px;
+  background: #FCFAF6;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset,
+              0 20px 44px -34px rgba(34,32,28,0.5);
+  overflow: hidden;
+}
+.sketch-frame svg { width: 100%; height: 100%; display: block; }
+
+/* the line-art look lives here, so replacement art needs no styling */
+.sketch-frame .rg {
+  stroke: #22201C;
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  cursor: pointer;
+  transition: fill 0.35s var(--ease-soft);
+}
+.sketch-frame .rg:hover { stroke-width: 3.4; }
+.sketch-frame .rg:focus-visible { outline: 2px solid var(--ultramarine); outline-offset: 2px; }
+
+/* detail marks — faces, stems, whiskers. Drawn, never filled, never tappable,
+   so a stray thumb can't turn an eye into a blob. */
+.sketch-frame .ln {
+  fill: none;
+  stroke: #22201C;
+  stroke-width: 2.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.sketch-frame .dt { fill: #22201C; stroke: none; pointer-events: none; }
+
+.sketch-name { text-align: center; }
+
+.sketch-nav { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; }
+.sketch-nav button {
+  width: 34px; height: 34px;
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: color 0.25s var(--ease-soft), border-color 0.25s var(--ease-soft),
+              background-color 0.25s var(--ease-soft);
+  -webkit-tap-highlight-color: transparent;
+}
+.sketch-nav button[aria-current="true"] {
+  background: var(--ink); border-color: var(--ink); color: var(--gesso);
+}
+.sketch-nav button.is-done::after {
+  content: "";
+  position: absolute;
+  margin: -14px 0 0 12px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--viridian);
+}
+
+/* ── My Collection ── */
+.collection-btn {
+  position: fixed;
+  right: max(0.9rem, env(safe-area-inset-right));
+  bottom: calc(0.9rem + env(safe-area-inset-bottom));
+  z-index: 55;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--hairline);
+  border-radius: 100px;
+  background: var(--card);
+  color: var(--ink-soft);
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  box-shadow: 0 12px 30px -18px rgba(34,32,28,0.7);
+  transition: transform 0.25s var(--ease-out), opacity 0.3s var(--ease-soft);
+  -webkit-tap-highlight-color: transparent;
+}
+.collection-btn[hidden] { display: none; }
+.collection-btn:active { transform: scale(0.96); }
+.collection-btn__n {
+  display: inline-grid;
+  place-content: center;
+  min-width: 20px; height: 20px;
+  padding: 0 5px;
+  border-radius: 100px;
+  background: var(--cadmium);
+  color: #fff;
+  font-size: 0.62rem;
+}
+
+.tray {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 70;
+  padding: 1.1rem max(1rem, env(safe-area-inset-left))
+           calc(1.2rem + env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-right));
+  background: var(--card);
+  border-top: 1px solid var(--hairline);
+  box-shadow: 0 -20px 50px -30px rgba(34,32,28,0.6);
+  transform: translateY(110%);
+  transition: transform 0.5s var(--ease-out);
+}
+.tray.is-open { transform: translateY(0); }
+.tray__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.85rem;
+}
+.tray__title {
+  font-family: var(--display);
+  font-variation-settings: "SOFT" 50, "WONK" 1;
+  font-weight: 500;
+  font-size: 1.15rem;
+  letter-spacing: -0.015em;
+}
+.tray__items {
+  display: flex;
+  gap: 0.6rem;
+  overflow-x: auto;
+  padding-bottom: 0.35rem;
+  scrollbar-width: thin;
+}
+.tray__items:empty::after {
+  content: "nothing saved yet — finish something and it'll appear here";
+  font-family: var(--mono);
+  font-size: 0.66rem;
+  color: var(--ink-faint);
+}
+.tray__item {
+  flex: none;
+  width: 84px;
+  padding: 0;
+  border: 1px solid var(--hairline);
+  border-radius: 3px;
+  background: var(--gesso);
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+.tray__item img { width: 100%; height: auto; display: block; }
+.tray__item figcaption {
+  padding: 0.35rem 0.3rem;
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+/* ── the sound toggle ── */
+.sound-btn {
+  position: fixed;
+  left: max(0.9rem, env(safe-area-inset-left));
+  bottom: calc(0.9rem + env(safe-area-inset-bottom));
+  z-index: 55;
+  display: inline-grid;
+  place-content: center;
+  width: 44px; height: 44px;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--ink-faint);
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: 0 12px 30px -18px rgba(34,32,28,0.7);
+  transition: color 0.25s var(--ease-soft), border-color 0.25s var(--ease-soft);
+  -webkit-tap-highlight-color: transparent;
+}
+.sound-btn[aria-pressed="true"] { color: var(--cadmium); border-color: var(--cadmium); }
+
+.sketch-source { display: none; }
 
 /* ─────────────────────── 3 · PAINT-BY-SCROLL ─────────────────────── */
 .paint__stage { justify-content: center; padding-bottom: 0; }
@@ -567,28 +819,6 @@ body.studio {
 }
 .pips span.is-on { background: var(--pig, var(--cadmium)); transform: scale(1.25); }
 
-/* ─────────────────────────── TOAST ─────────────────────────── */
-.toast {
-  position: fixed;
-  left: 50%;
-  bottom: calc(1.5rem + env(safe-area-inset-bottom));
-  z-index: 80;
-  transform: translate(-50%, 130%);
-  max-width: min(92vw, 400px);
-  padding: 0.75rem 1.15rem;
-  border-radius: 100px;
-  background: var(--ink);
-  color: var(--gesso);
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
-  text-align: center;
-  box-shadow: 0 18px 40px -20px rgba(34,32,28,0.8);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.45s var(--ease-out), opacity 0.4s var(--ease-soft);
-}
-.toast.is-on { transform: translate(-50%, 0); opacity: 1; }
 
 /* ─────────────────────── WIDER SCREENS ─────────────────────── */
 @media (min-width: 620px) {

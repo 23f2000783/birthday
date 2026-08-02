@@ -49,8 +49,8 @@
     {
       id: "mix",
       view: "viewMix",
-      name: "Colour Mix Lab",
-      blurb: "Stir two pigments together. Every colour you land on remembers something.",
+      name: "Colour & Coloring Lab",
+      blurb: "Stir two pigments together, then colour six drawings with what you made.",
       go: "start mixing →",
       thumb:
         '<svg viewBox="0 0 80 100" xmlns="http://www.w3.org/2000/svg">' +
@@ -90,6 +90,14 @@
   ];
   const RESTORE_HINT = "brush the dust away";
 
+  /* What's underneath the dust is a post — hers. */
+  const IG_HANDLE = FRIEND_NAME.toLowerCase();
+  const IG_LOCATION = "somewhere with a view";
+  const IG_LIKED_BY = "Liked by " + YOUR_NAME.toLowerCase() + " and others";
+  const IG_TIMESTAMP = "today";
+  const IG_CAPTION_PLACEHOLDER = "chasing sunrises…";
+  const IG_CAPTION_LABEL = "write your caption";
+
   /* ── Game 2 · Colour Mix Lab ────────────────────────────────────────────
      `recipe` is the ratio of pigments, order doesn't matter and neither does
      how many drops she uses — 2 cadmium + 2 naples is the same 1:1 mix as
@@ -111,6 +119,14 @@
     { name: "gold",        recipe: { naples: 2, cadmium: 1 },     resultColor: "#EFA646", memory: "the light you carry home." },
     { name: "violet",      recipe: { ultramarine: 1, cadmium: 1 }, resultColor: "#8A4E6B", memory: "a ceiling, about to be painted past." }
   ];
+
+  /** Ambient studio sound — never autoplays regardless; this only pre-arms it. */
+  const MUSIC_ON_BY_DEFAULT = false;
+
+  /** Coloring Lab (§4b) copy. The drawings live in studio.html (SKETCHES_SWAP). */
+  const COLOR_HINT = "your colours · tap one, then tap the drawing";
+  const COLOR_FIRST_HINT = "mix a colour first, or use a pigment below";
+  const SKETCH_CARD_LINE = "coloured in by " + FRIEND_NAME + ".";
 
   const MIX_EMPTY_HINT   = "tap two pigments";
   const MIX_UNNAMED      = "a colour that doesn't have a name yet. it's yours.";
@@ -151,6 +167,13 @@
   };
   const clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
   const lerp = function (a, b, t) { return a + (b - a) * t; };
+
+  /* The same motion vocabulary the main site uses (§8) — shared deliberately,
+     so the two halves of the gift feel like one hand made them. */
+  const EASE_OUT = 'power3.out';    // things arriving
+  const EASE_IO = 'power2.inOut';   // things travelling through
+  const EASE_SOFT = 'power2.out';   // small settles
+  const D_SLOW = 1.2, D_MED = 0.9, D_FAST = 0.6;
 
   function rgba(hex, a) {
     const n = parseInt(hex.slice(1), 16);
@@ -391,8 +414,23 @@
     ctx.fillStyle = 'rgba(247,244,239,0.82)';
     ctx.fillRect(0, 0, CARD_W, CARD_H);
 
-    // gallery hairline frame
-    ctx.strokeStyle = 'rgba(34,32,28,0.16)';
+    /* The painterly framer (§6.2): loose pigment brushed along the edges under
+       two hairlines, so every saved piece looks like it came from the same
+       hand and the same collection. */
+    const edge = 30;
+    for (let i = 0; i < 150; i++) {
+      const side = i % 4;
+      const t = Math.random();
+      let px, py;
+      if (side === 0) { px = lerp(edge, CARD_W - edge, t); py = edge + (Math.random() - 0.5) * 16; }
+      else if (side === 1) { px = CARD_W - edge + (Math.random() - 0.5) * 16; py = lerp(edge, CARD_H - edge, t); }
+      else if (side === 2) { px = lerp(edge, CARD_W - edge, t); py = CARD_H - edge + (Math.random() - 0.5) * 16; }
+      else { px = edge + (Math.random() - 0.5) * 16; py = lerp(edge, CARD_H - edge, t); }
+      dab(ctx, px, py, 9 + Math.random() * 16,
+          PIGMENTS[Math.floor(Math.random() * PIGMENTS.length)], 0.05);
+    }
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = 'rgba(34,32,28,0.18)';
     ctx.lineWidth = 2;
     ctx.strokeRect(38, 38, CARD_W - 76, CARD_H - 76);
     ctx.strokeStyle = 'rgba(34,32,28,0.07)';
@@ -448,6 +486,8 @@
     if (!blob) { toast("couldn't build the image — try again"); return; }
 
     const filename = opts.file || 'mansi-studio.png';
+    // everything she saves joins the collection, however she saves it
+    Collection.add(blob, opts.label || opts.eyebrow || 'a piece', filename);
 
     if (wantShare && navigator.canShare) {
       try {
@@ -473,6 +513,181 @@
     } catch (e) { ok = false; }
     if (ok) $$('[data-share]').forEach(function (b) { b.hidden = false; });
   }
+
+
+  /* ─────────────── 5b · MY COLLECTION (§2) ─────────────── */
+
+  /** Everything she saves also lands in a session tray — a little portfolio. */
+  const Collection = (function () {
+    const btn = $('#collectionBtn');
+    const count = $('#collectionN');
+    const tray = $('#tray');
+    const items = $('#trayItems');
+    const closeBtn = $('#trayClose');
+    if (!btn || !tray || !items) return { add: function () {} };
+
+    const kept = [];
+
+    function open(on) {
+      tray.classList.toggle('is-open', on);
+      btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+      if (on) closeBtn.focus({ preventScroll: true });
+    }
+
+    btn.addEventListener('click', function () { open(!tray.classList.contains('is-open')); });
+    closeBtn.addEventListener('click', function () { open(false); btn.focus({ preventScroll: true }); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && tray.classList.contains('is-open')) { open(false); btn.focus(); }
+    });
+
+    return {
+      add: function (blob, label, filename) {
+        const url = URL.createObjectURL(blob);
+        kept.push({ url: url, label: label, filename: filename });
+
+        const fig = document.createElement('figure');
+        fig.className = 'tray__item';
+        fig.setAttribute('role', 'button');
+        fig.tabIndex = 0;
+        fig.setAttribute('aria-label', 'Save ' + label + ' again');
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = label;
+        const cap = document.createElement('figcaption');
+        cap.textContent = label;
+        fig.appendChild(img);
+        fig.appendChild(cap);
+
+        const again = function () { downloadBlob(blob, filename); toast('saved again 🤍'); };
+        fig.addEventListener('click', again);
+        fig.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); again(); }
+        });
+
+        items.appendChild(fig);
+        btn.hidden = false;
+        if (count) count.textContent = kept.length;
+        if (HAS_GSAP && !REDUCED) {
+          gsap.fromTo(fig, { scale: 0.6, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.55, ease: 'back.out(2)' });
+          gsap.fromTo(btn, { scale: 1 }, { scale: 1.12, duration: 0.22, yoyo: true, repeat: 1 });
+        }
+      }
+    };
+  })();
+
+
+  /* ─────────────── 5c · AMBIENT STUDIO SOUND (§6.4) ─────────────── */
+
+  /* Off by default, never autoplays, built with WebAudio so there's no asset
+     to ship. Two detuned oscillators through a lowpass, breathing slowly. */
+  const Sound = (function () {
+    const btn = $('#soundBtn');
+    if (!btn) return;
+    let actx = null, master = null, nodes = [], on = false;
+
+    function build() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return false;
+      actx = new AC();
+      master = actx.createGain();
+      master.gain.value = 0;
+      master.connect(actx.destination);
+
+      /* Warmth comes from three things, not from the notes alone:
+         a gentle delay for air, a low-passed triangle body under sines,
+         and a filter that drifts so the pad never sits still. */
+      const air = actx.createDelay(1.2);
+      air.delayTime.value = 0.42;
+      const feedback = actx.createGain();
+      feedback.gain.value = 0.34;
+      const airLevel = actx.createGain();
+      airLevel.gain.value = 0.45;
+      air.connect(feedback); feedback.connect(air);
+      air.connect(airLevel); airLevel.connect(master);
+
+      const filter = actx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.value = 540;
+      filter.Q.value = 0.4;
+      filter.connect(master);
+      filter.connect(air);
+
+      // takes the boxiness out of the low end
+      const clean = actx.createBiquadFilter();
+      clean.type = 'highpass';
+      clean.frequency.value = 70;
+      clean.connect(filter);
+
+      // the cutoff breathes very slowly — this is most of the "gentle"
+      const sweep = actx.createOscillator();
+      sweep.frequency.value = 0.028;
+      const sweepAmt = actx.createGain();
+      sweepAmt.gain.value = 190;
+      sweep.connect(sweepAmt);
+      sweepAmt.connect(filter.frequency);
+      sweep.start();
+      nodes.push(sweep);
+
+      /* F major with a ninth — warm and open, and it never resolves, so it
+         can sit under her for as long as she likes without asking for
+         attention. Triangles underneath for body, sines on top for air. */
+      const voices = [
+        { f: 87.31,  type: 'triangle', gain: 0.30, lfo: 0.031 },  // F2
+        { f: 130.81, type: 'triangle', gain: 0.24, lfo: 0.024 },  // C3
+        { f: 174.61, type: 'sine',     gain: 0.20, lfo: 0.019 },  // F3
+        { f: 261.63, type: 'sine',     gain: 0.13, lfo: 0.015 },  // C4
+        { f: 329.63, type: 'sine',     gain: 0.07, lfo: 0.012 }   // E4 — the ninth
+      ];
+
+      voices.forEach(function (v, i) {
+        const o = actx.createOscillator();
+        o.type = v.type;
+        o.frequency.value = v.f;
+        o.detune.value = (i % 2 ? 4 : -4);      // a little chorus, not tuning drift
+
+        const g = actx.createGain();
+        g.gain.value = v.gain;
+
+        // each voice swells on its own slow cycle, so they drift in and out
+        const lfo = actx.createOscillator();
+        lfo.frequency.value = v.lfo;
+        const lfoGain = actx.createGain();
+        lfoGain.gain.value = v.gain * 0.55;
+        lfo.connect(lfoGain);
+        lfoGain.connect(g.gain);
+
+        o.connect(g); g.connect(clean);
+        o.start(); lfo.start();
+        nodes.push(o, lfo);
+      });
+      return true;
+    }
+
+    function toggle() {
+      if (!actx && !build()) { toast('sound is not available here'); return; }
+      on = !on;
+      if (actx.state === 'suspended') actx.resume();
+      const t = actx.currentTime;
+      master.gain.cancelScheduledValues(t);
+      master.gain.setValueAtTime(master.gain.value, t);
+      // a long fade in, a shorter one out — it should arrive like weather
+      master.gain.linearRampToValueAtTime(on ? 0.085 : 0, t + (on ? 3.4 : 1.4));
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.setAttribute('aria-label', on ? 'Stop the studio sound' : 'Play quiet studio sound');
+      const icon = $('#soundIcon');
+      if (icon) icon.textContent = on ? '♫' : '♪';
+    }
+
+    btn.addEventListener('click', toggle);
+    if (MUSIC_ON_BY_DEFAULT) {
+      // still gated behind her first interaction — browsers require it
+      document.addEventListener('pointerdown', function once() {
+        document.removeEventListener('pointerdown', once);
+        if (!on) toggle();
+      }, { once: true });
+    }
+  })();
 
 
   /* ───────────────────────── 6 · VIEW ROUTER ───────────────────────── */
@@ -513,7 +728,7 @@
         gsap.set(to, { opacity: 0, scale: id === 'landing' ? 1.02 : 0.965 });
         gsap.to(from, { opacity: 0, duration: 0.28, ease: 'power2.in' });
         gsap.to(to, {
-          opacity: 1, scale: 1, duration: 0.62, ease: 'power3.out', delay: 0.16,
+          opacity: 1, scale: 1, duration: 0.62, ease: EASE_OUT, delay: 0.16,
           onStart: function () { gsap.set(from, { opacity: 0 }); },
           onComplete: function () { gsap.set(from, { opacity: 1 }); finish(); }
         });
@@ -568,16 +783,16 @@
     });
     tl.fromTo('.entrance__spill',
         { opacity: 0, scale: 0.3 },
-        { opacity: 0.95, scale: 1.35, duration: 1.1, ease: 'power2.out' }, 0.15)
+        { opacity: 0.95, scale: 1.35, duration: 1.1, ease: EASE_SOFT }, 0.15)
       .to('.entrance__panel--l', { xPercent: -101, duration: 1.25, ease: 'power4.inOut' }, 0.35)
       .to('.entrance__panel--r', { xPercent: 101, duration: 1.25, ease: 'power4.inOut' }, 0.35)
       .to('.entrance__spill', { opacity: 0, scale: 2.1, duration: 0.9, ease: 'power2.in' }, 0.9)
       .fromTo('.landing__head > *',
         { opacity: 0, y: 22 },
-        { opacity: 1, y: 0, duration: 0.85, stagger: 0.09, ease: 'power3.out' }, 0.85)
+        { opacity: 1, y: 0, duration: 0.85, stagger: 0.09, ease: EASE_OUT }, 0.85)
       .fromTo('.easel-card',
         { opacity: 0, y: 34 },
-        { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: 'power3.out' }, 1.1)
+        { opacity: 1, y: 0, duration: 0.8, stagger: 0.1, ease: EASE_OUT }, 1.1)
       .fromTo('.landing__foot', { opacity: 0 }, { opacity: 1, duration: 0.6 }, 1.5);
   }
 
@@ -643,6 +858,7 @@
     let started = false, done = false;
     let lineIdx = -1;
     let drawing = false, last = null;
+    let captionText = '';   // whatever she types onto the post
     let lastCheck = 0;
 
     // low-res mirror used only to measure how much dust is gone
@@ -652,180 +868,375 @@
     const mCtx = meas.getContext('2d', { willReadFrequently: true });
 
     /* ═══════════════════════════════════════════════════════════════
-       PORTRAIT_SWAP · The portrait underneath the dust.
-       Everything below draws a stylized profile — hair loosely tied,
-       chin lifted, palette colours only. To use a real photo-traced
-       silhouette instead, replace the whole body of drawPortrait()
-       with e.g.:
-           const img = new Image();
-           img.onload = () => ctx.drawImage(img, 0, 0, W, H);
-           img.src = 'mansi-portrait.png';
-       Keep the signature (ctx, W, H) and it will slot straight in.
+       PORTRAIT_SWAP · What's underneath the dust: an Instagram post.
+       drawPortrait() lays out the post chrome (avatar, handle, action
+       row, "Liked by…"), and calls drawSunrisePhoto() for the picture
+       itself — a slim figure seen from behind, hair worn open, facing
+       sunrise mountains.
+
+       To drop in a real photo-traced silhouette, replace only the body
+       of drawSunrisePhoto(ctx, x, y, w, h) — e.g.
+           ctx.drawImage(myImage, x, y, w, h);
+       and the post chrome around it keeps working untouched.
        ═══════════════════════════════════════════════════════════════ */
+
+    /** The photo inside the post: sunrise, mountains, her looking at them. */
+    function drawSunrisePhoto(ctx, x, y, w, h) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(x, y, w, h);
+      ctx.clip();
+
+      const P = function (u, v) { return [x + u * w, y + v * h]; };
+
+      // sunrise sky
+      const sky = ctx.createLinearGradient(0, y, 0, y + h);
+      sky.addColorStop(0, '#F7C85E');
+      sky.addColorStop(0.34, '#F5A64B');
+      sky.addColorStop(0.62, '#E8734A');
+      sky.addColorStop(1, '#C9556B');
+      ctx.fillStyle = sky;
+      ctx.fillRect(x, y, w, h);
+
+      // the sun, just clearing the ridge
+      const sun = P(0.60, 0.50);
+      const glow = ctx.createRadialGradient(sun[0], sun[1], 0, sun[0], sun[1], w * 0.45);
+      glow.addColorStop(0, 'rgba(255,244,210,0.95)');
+      glow.addColorStop(0.28, 'rgba(255,226,150,0.55)');
+      glow.addColorStop(1, 'rgba(255,214,120,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(x, y, w, h);
+      ctx.beginPath();
+      ctx.arc(sun[0], sun[1], w * 0.105, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFF0C4';
+      ctx.fill();
+
+      // far range
+      ctx.beginPath();
+      ctx.moveTo.apply(ctx, P(-0.02, 0.66));
+      ctx.lineTo.apply(ctx, P(0.16, 0.46));
+      ctx.lineTo.apply(ctx, P(0.30, 0.60));
+      ctx.lineTo.apply(ctx, P(0.46, 0.40));
+      ctx.lineTo.apply(ctx, P(0.62, 0.60));
+      ctx.lineTo.apply(ctx, P(0.78, 0.44));
+      ctx.lineTo.apply(ctx, P(1.02, 0.68));
+      ctx.lineTo.apply(ctx, P(1.02, 1.02));
+      ctx.lineTo.apply(ctx, P(-0.02, 1.02));
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(43,74,139,0.42)';
+      ctx.fill();
+
+      // near range
+      ctx.beginPath();
+      ctx.moveTo.apply(ctx, P(-0.02, 0.78));
+      ctx.lineTo.apply(ctx, P(0.22, 0.60));
+      ctx.lineTo.apply(ctx, P(0.40, 0.76));
+      ctx.lineTo.apply(ctx, P(0.58, 0.62));
+      ctx.lineTo.apply(ctx, P(0.80, 0.80));
+      ctx.lineTo.apply(ctx, P(1.02, 0.72));
+      ctx.lineTo.apply(ctx, P(1.02, 1.02));
+      ctx.lineTo.apply(ctx, P(-0.02, 1.02));
+      ctx.closePath();
+      ctx.fillStyle = '#2B4A8B';
+      ctx.fill();
+
+      // snow still on the two nearest peaks
+      ctx.fillStyle = 'rgba(255,240,214,0.62)';
+      [[0.22, 0.60, 0.055], [0.58, 0.62, 0.05]].forEach(function (pk) {
+        ctx.beginPath();
+        ctx.moveTo.apply(ctx, P(pk[0], pk[1]));
+        ctx.lineTo.apply(ctx, P(pk[0] + pk[2], pk[1] + pk[2] * 0.9));
+        ctx.bezierCurveTo.apply(ctx, [].concat(
+          P(pk[0] + pk[2] * 0.5, pk[1] + pk[2] * 0.5),
+          P(pk[0] - pk[2] * 0.45, pk[1] + pk[2] * 1.0),
+          P(pk[0] - pk[2], pk[1] + pk[2] * 0.9)));
+        ctx.closePath();
+        ctx.fill();
+      });
+
+      // the last stars, not quite gone
+      ctx.fillStyle = 'rgba(255,248,226,0.55)';
+      [[0.10, 0.09], [0.24, 0.05], [0.17, 0.17], [0.86, 0.08], [0.74, 0.14], [0.93, 0.19]]
+        .forEach(function (s, i) {
+          ctx.globalAlpha = 0.5 - i * 0.05;
+          ctx.beginPath();
+          ctx.arc.apply(ctx, [].concat(P(s[0], s[1]), [w * (0.006 - i * 0.0004), 0, Math.PI * 2]));
+          ctx.fill();
+        });
+      ctx.globalAlpha = 1;
+
+      // three birds already up, because someone always is
+      ctx.strokeStyle = 'rgba(27,36,54,0.55)';
+      ctx.lineWidth = Math.max(1, w * 0.006);
+      ctx.lineCap = 'round';
+      [[0.20, 0.26, 1], [0.29, 0.21, 0.78], [0.135, 0.205, 0.62]].forEach(function (b) {
+        const s = w * 0.028 * b[2];
+        const p = P(b[0], b[1]);
+        ctx.beginPath();
+        ctx.moveTo(p[0] - s, p[1]);
+        ctx.quadraticCurveTo(p[0] - s * 0.45, p[1] - s * 0.62, p[0], p[1] - s * 0.05);
+        ctx.quadraticCurveTo(p[0] + s * 0.45, p[1] - s * 0.62, p[0] + s, p[1]);
+        ctx.stroke();
+      });
+
+      // the ground she's standing on
+      ctx.beginPath();
+      ctx.moveTo.apply(ctx, P(-0.02, 0.90));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.26, 0.865), P(0.70, 0.875), P(1.02, 0.855)));
+      ctx.lineTo.apply(ctx, P(1.02, 1.02));
+      ctx.lineTo.apply(ctx, P(-0.02, 1.02));
+      ctx.closePath();
+      ctx.fillStyle = '#22304E';
+      ctx.fill();
+
+      /* ── her, from behind: slim, hair worn open, looking at the light ──
+         Drawing order matters: body, then head, then the hair over both, so
+         open hair falls across the shoulders instead of merging with them. */
+      const figure = '#1B2436';
+
+      // backlight — she's between us and the sun, so the air glows around her
+      const halo = ctx.createRadialGradient.apply(ctx,
+        [].concat(P(0.472, 0.660), [0], P(0.472, 0.660), [w * 0.20]));
+      halo.addColorStop(0, 'rgba(255,226,160,0.55)');
+      halo.addColorStop(1, 'rgba(255,226,160,0)');
+      ctx.fillStyle = halo;
+      ctx.fillRect(x, y, w, h);
+
+      // arms, hanging easy — drawn first so they sit behind the dress edge
+      ctx.strokeStyle = figure;
+      ctx.lineWidth = Math.max(2, w * 0.017);
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo.apply(ctx, P(0.437, 0.626));
+      ctx.quadraticCurveTo.apply(ctx, [].concat(P(0.421, 0.700), P(0.427, 0.768)));
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo.apply(ctx, P(0.505, 0.626));
+      ctx.quadraticCurveTo.apply(ctx, [].concat(P(0.521, 0.700), P(0.515, 0.768)));
+      ctx.stroke();
+
+      // body: sloped shoulders, nipped waist, a long skirt to the ground
+      ctx.beginPath();
+      ctx.moveTo.apply(ctx, P(0.470, 0.598));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.450, 0.600), P(0.437, 0.612), P(0.433, 0.634)));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.429, 0.672), P(0.432, 0.700), P(0.436, 0.716)));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.428, 0.786), P(0.420, 0.856), P(0.416, 0.906)));
+      ctx.lineTo.apply(ctx, P(0.524, 0.906));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.520, 0.856), P(0.512, 0.786), P(0.504, 0.716)));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.508, 0.700), P(0.511, 0.672), P(0.507, 0.634)));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.503, 0.612), P(0.490, 0.600), P(0.470, 0.598)));
+      ctx.closePath();
+      ctx.fillStyle = figure;
+      ctx.fill();
+
+      // head + a slip of neck, so she isn't one solid shape
+      ctx.beginPath();
+      ctx.arc.apply(ctx, [].concat(P(0.470, 0.552), [w * 0.043, 0, Math.PI * 2]));
+      ctx.fill();
+      ctx.beginPath();
+      ctx.rect.apply(ctx, [].concat(P(0.459, 0.578), [w * 0.022, h * 0.026]));
+      ctx.fill();
+
+      /* Open hair — it follows the head at the crown, widens past the
+         shoulders and ends above the waist, so the shape of her still reads
+         instead of becoming one dark column. */
+      ctx.beginPath();
+      ctx.moveTo.apply(ctx, P(0.470, 0.507));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.434, 0.507), P(0.424, 0.542), P(0.426, 0.586)));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.428, 0.624), P(0.432, 0.652), P(0.442, 0.674)));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.455, 0.684), P(0.485, 0.684), P(0.498, 0.674)));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.508, 0.652), P(0.512, 0.624), P(0.514, 0.586)));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.516, 0.542), P(0.506, 0.507), P(0.470, 0.507)));
+      ctx.closePath();
+      ctx.fill();
+
+      // the sun catching the outer edge of her hair, and again on the skirt
+      ctx.strokeStyle = 'rgba(255,224,162,0.6)';
+      ctx.lineWidth = Math.max(1.2, w * 0.006);
+      ctx.beginPath();
+      ctx.moveTo.apply(ctx, P(0.503, 0.516));
+      ctx.bezierCurveTo.apply(ctx, [].concat(P(0.516, 0.544), P(0.517, 0.612), P(0.508, 0.668)));
+      ctx.stroke();
+      // NB: no matching highlight down the skirt — it lines up with the hair
+      // edge and the two together read as a walking staff.
+
+      /* A small heart drawn in the dirt beside her feet — she got here early
+         enough to have time for it. Nobody has to notice this. */
+      ctx.strokeStyle = 'rgba(255,226,168,0.5)';
+      ctx.lineWidth = Math.max(1, w * 0.005);
+      const hx = 0.615, hy = 0.932, hs = 0.026;
+      ctx.beginPath();
+      ctx.moveTo.apply(ctx, P(hx, hy + hs * 0.75));
+      ctx.bezierCurveTo.apply(ctx, [].concat(
+        P(hx - hs * 1.15, hy - hs * 0.1), P(hx - hs * 0.5, hy - hs * 0.85), P(hx, hy - hs * 0.18)));
+      ctx.bezierCurveTo.apply(ctx, [].concat(
+        P(hx + hs * 0.5, hy - hs * 0.85), P(hx + hs * 1.15, hy - hs * 0.1), P(hx, hy + hs * 0.75)));
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
     function drawPortrait(ctx, W, H) {
       const X = function (u) { return u * W; };
       const Y = function (v) { return v * H; };
 
       ctx.clearRect(0, 0, W, H);
 
-      // ground wash
-      const bg = ctx.createLinearGradient(0, 0, 0, H);
-      bg.addColorStop(0, '#FBF3E4');
-      bg.addColorStop(1, '#F3E7D2');
-      ctx.fillStyle = bg;
+      // the wall the post is pinned to
+      const wall = ctx.createLinearGradient(0, 0, 0, H);
+      wall.addColorStop(0, '#FBF3E4');
+      wall.addColorStop(1, '#F1E9DA');
+      ctx.fillStyle = wall;
       ctx.fillRect(0, 0, W, H);
 
-      // halo of light she's looking up into
-      const halo = ctx.createRadialGradient(X(0.66), Y(0.24), 0, X(0.66), Y(0.24), W * 0.62);
-      halo.addColorStop(0, rgba('#F2C14E', 0.62));
-      halo.addColorStop(0.55, rgba('#F2C14E', 0.16));
-      halo.addColorStop(1, rgba('#F2C14E', 0));
-      ctx.fillStyle = halo;
-      ctx.fillRect(0, 0, W, H);
-
-      // loose painterly marks in the background
-      [[0.16, 0.66, 0.30, '#1F7A5A', 0.1], [0.84, 0.72, 0.26, '#2B4A8B', 0.08],
-       [0.30, 0.20, 0.22, '#E8552D', 0.07]].forEach(function (m) {
-        dab(ctx, X(m[0]), Y(m[1]), W * m[2], m[3], m[4]);
-      });
-      ctx.globalAlpha = 1;
-
-      // chin lifted: the whole figure tips back a touch
+      /* ── the post card ── */
+      const cx0 = X(0.045), cy0 = Y(0.042), cw = X(0.91), ch = Y(0.916);
+      const r = W * 0.035;
       ctx.save();
-      ctx.translate(X(0.47), Y(0.62));
-      ctx.rotate(-0.06);
-      ctx.translate(-X(0.47), -Y(0.62));
-
-      /* One continuous cameo — head, tied-back hair and shoulders in a single
-         outline. Keeping the hair *inside* the silhouette (as a bulge, not an
-         overlaid shape) is what stops it reading as a headband. */
-      function cameoPath() {
-        ctx.beginPath();
-        ctx.moveTo(X(0.440), Y(0.098));
-        ctx.bezierCurveTo(X(0.545), Y(0.100), X(0.624), Y(0.160), X(0.652), Y(0.246)); // forehead
-        ctx.bezierCurveTo(X(0.660), Y(0.272), X(0.650), Y(0.290), X(0.648), Y(0.300)); // brow
-        ctx.bezierCurveTo(X(0.656), Y(0.308), X(0.686), Y(0.326), X(0.708), Y(0.350)); // nose
-        ctx.bezierCurveTo(X(0.700), Y(0.362), X(0.680), Y(0.364), X(0.670), Y(0.370)); // under nose
-        ctx.bezierCurveTo(X(0.678), Y(0.380), X(0.680), Y(0.390), X(0.668), Y(0.398)); // upper lip
-        ctx.bezierCurveTo(X(0.682), Y(0.406), X(0.680), Y(0.418), X(0.664), Y(0.424)); // lower lip
-        ctx.bezierCurveTo(X(0.674), Y(0.436), X(0.684), Y(0.446), X(0.678), Y(0.466)); // chin
-        ctx.bezierCurveTo(X(0.668), Y(0.494), X(0.620), Y(0.516), X(0.566), Y(0.516)); // jaw
-        ctx.bezierCurveTo(X(0.520), Y(0.516), X(0.486), Y(0.506), X(0.470), Y(0.494)); // under ear
-        ctx.bezierCurveTo(X(0.472), Y(0.530), X(0.476), Y(0.560), X(0.480), Y(0.600)); // neck front
-        ctx.bezierCurveTo(X(0.484), Y(0.634), X(0.504), Y(0.652), X(0.548), Y(0.668));
-        ctx.bezierCurveTo(X(0.680), Y(0.706), X(0.836), Y(0.792), X(0.930), Y(0.900)); // r shoulder
-        ctx.bezierCurveTo(X(0.968), Y(0.944), X(0.986), Y(0.984), X(0.995), Y(1.03));
-        ctx.lineTo(X(0.005), Y(1.03));
-        ctx.bezierCurveTo(X(0.016), Y(0.972), X(0.048), Y(0.918), X(0.100), Y(0.862)); // l shoulder
-        ctx.bezierCurveTo(X(0.176), Y(0.788), X(0.268), Y(0.720), X(0.330), Y(0.686));
-        ctx.bezierCurveTo(X(0.356), Y(0.668), X(0.368), Y(0.640), X(0.366), Y(0.606)); // neck back
-        ctx.bezierCurveTo(X(0.336), Y(0.588), X(0.302), Y(0.560), X(0.288), Y(0.520)); // nape
-        ctx.bezierCurveTo(X(0.278), Y(0.492), X(0.270), Y(0.462), X(0.268), Y(0.430)); // skull
-        ctx.bezierCurveTo(X(0.240), Y(0.438), X(0.196), Y(0.418), X(0.188), Y(0.376)); // the bun,
-        ctx.bezierCurveTo(X(0.180), Y(0.334), X(0.208), Y(0.298), X(0.248), Y(0.296)); // a lobe of its own
-        ctx.bezierCurveTo(X(0.252), Y(0.260), X(0.262), Y(0.220), X(0.288), Y(0.184)); // back to skull
-        ctx.bezierCurveTo(X(0.320), Y(0.138), X(0.378), Y(0.102), X(0.440), Y(0.098)); // crown
-        ctx.closePath();
-      }
-
-      /* The hairline — front edge of the hair, from crown down past the ear.
-         Everything behind it becomes the hair mass. */
-      function hairPath() {
-        ctx.beginPath();
-        ctx.moveTo(X(0.470), Y(0.108));
-        ctx.bezierCurveTo(X(0.562), Y(0.126), X(0.612), Y(0.180), X(0.626), Y(0.238)); // hairline
-        ctx.bezierCurveTo(X(0.600), Y(0.226), X(0.558), Y(0.220), X(0.528), Y(0.236)); // fringe dip
-        ctx.bezierCurveTo(X(0.498), Y(0.254), X(0.484), Y(0.300), X(0.490), Y(0.360)); // past the ear
-        ctx.bezierCurveTo(X(0.496), Y(0.420), X(0.492), Y(0.472), X(0.474), Y(0.498));
-        // it's tied up, so it tapers off at the nape instead of falling
-        ctx.bezierCurveTo(X(0.466), Y(0.532), X(0.446), Y(0.562), X(0.418), Y(0.580));
-        ctx.bezierCurveTo(X(0.392), Y(0.596), X(0.356), Y(0.600), X(0.322), Y(0.592));
-        ctx.lineTo(X(0), Y(0.600));
-        ctx.lineTo(X(0), Y(0));
-        ctx.lineTo(X(0.470), Y(0));
-        ctx.closePath();
-      }
-
-      cameoPath();
-      ctx.fillStyle = '#2B4A8B';
+      ctx.shadowColor = 'rgba(34,32,28,0.18)';
+      ctx.shadowBlur = W * 0.06;
+      ctx.shadowOffsetY = W * 0.02;
+      roundRect(ctx, cx0, cy0, cw, ch, r);
+      ctx.fillStyle = '#FFFFFF';
       ctx.fill();
+      ctx.restore();
 
-      // hair: a clean, deliberate hairline rather than a wash across the head
+      /* ── header: avatar + handle ── */
+      const avX = cx0 + W * 0.075, avY = cy0 + H * 0.055, avR = W * 0.042;
+      // a little gradient ring, like the app draws
+      const ring = ctx.createLinearGradient(avX - avR, avY - avR, avX + avR, avY + avR);
+      ring.addColorStop(0, '#F2C14E');
+      ring.addColorStop(0.5, '#E8552D');
+      ring.addColorStop(1, '#2B4A8B');
+      ctx.beginPath();
+      ctx.arc(avX, avY, avR * 1.22, 0, Math.PI * 2);
+      ctx.fillStyle = ring;
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(avX, avY, avR * 1.06, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fill();
+      // the avatar itself: a tiny brushmark, because she's a painter
       ctx.save();
-      cameoPath();
+      ctx.beginPath();
+      ctx.arc(avX, avY, avR, 0, Math.PI * 2);
       ctx.clip();
-      hairPath();
-      ctx.fillStyle = '#2A2620';
-      ctx.fill();
-
-      // light landing on the crown, soft-edged
-      const sheen = ctx.createRadialGradient(X(0.44), Y(0.13), 0, X(0.44), Y(0.13), W * 0.34);
-      sheen.addColorStop(0, rgba('#F2C14E', 0.4));
-      sheen.addColorStop(0.6, rgba('#F2C14E', 0.12));
-      sheen.addColorStop(1, rgba('#F2C14E', 0));
-      hairPath();
-      ctx.fillStyle = sheen;
-      ctx.fill();
+      ctx.fillStyle = '#F7E6C4';
+      ctx.fillRect(avX - avR, avY - avR, avR * 2, avR * 2);
+      dab(ctx, avX - avR * 0.2, avY + avR * 0.1, avR * 0.9, '#E8552D', 0.5);
+      dab(ctx, avX + avR * 0.35, avY - avR * 0.25, avR * 0.6, '#2B4A8B', 0.4);
+      ctx.globalAlpha = 1;
       ctx.restore();
 
-      // the garment, over the shoulders, with a scooped neckline
-      ctx.beginPath();
-      ctx.moveTo(X(0.005), Y(1.03));
-      ctx.bezierCurveTo(X(0.016), Y(0.972), X(0.048), Y(0.918), X(0.100), Y(0.862));
-      ctx.bezierCurveTo(X(0.170), Y(0.788), X(0.258), Y(0.720), X(0.318), Y(0.684));
-      ctx.bezierCurveTo(X(0.380), Y(0.762), X(0.502), Y(0.768), X(0.566), Y(0.694)); // neckline
-      ctx.bezierCurveTo(X(0.700), Y(0.726), X(0.846), Y(0.800), X(0.930), Y(0.900));
-      ctx.bezierCurveTo(X(0.968), Y(0.944), X(0.986), Y(0.984), X(0.995), Y(1.03));
-      ctx.closePath();
-      ctx.fillStyle = '#1F7A5A';
-      ctx.fill();
+      ctx.fillStyle = '#22201C';
+      ctx.font = '600 ' + Math.round(W * 0.052) + 'px "Instrument Sans", system-ui, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(IG_HANDLE, avX + avR * 1.6, avY - W * 0.014);
+      ctx.fillStyle = '#8C877D';
+      ctx.font = '400 ' + Math.round(W * 0.038) + 'px "Instrument Sans", system-ui, sans-serif';
+      ctx.fillText(IG_LOCATION, avX + avR * 1.6, avY + W * 0.032);
 
-      // rim light: a stroke straddling the profile edge, so the light reads as
-      // coming from the same place she's looking
-      ctx.beginPath();
-      ctx.moveTo(X(0.452), Y(0.104));
-      ctx.bezierCurveTo(X(0.552), Y(0.108), X(0.628), Y(0.166), X(0.654), Y(0.248));
-      ctx.bezierCurveTo(X(0.662), Y(0.274), X(0.652), Y(0.292), X(0.650), Y(0.302));
-      ctx.bezierCurveTo(X(0.658), Y(0.310), X(0.688), Y(0.328), X(0.710), Y(0.352));
-      ctx.bezierCurveTo(X(0.702), Y(0.364), X(0.682), Y(0.366), X(0.672), Y(0.372));
-      ctx.bezierCurveTo(X(0.680), Y(0.382), X(0.682), Y(0.392), X(0.670), Y(0.400));
-      ctx.bezierCurveTo(X(0.684), Y(0.408), X(0.682), Y(0.420), X(0.666), Y(0.426));
-      ctx.bezierCurveTo(X(0.676), Y(0.438), X(0.686), Y(0.448), X(0.680), Y(0.468));
-      ctx.bezierCurveTo(X(0.670), Y(0.496), X(0.622), Y(0.518), X(0.568), Y(0.518));
-      ctx.strokeStyle = '#F2C14E';
-      ctx.lineWidth = Math.max(2, W * 0.019);
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.stroke();
-
-      // the tie holding the bun
-      ctx.strokeStyle = rgba('#F2C14E', 0.55);
-      ctx.lineWidth = Math.max(2, W * 0.014);
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(X(0.258), Y(0.286));
-      ctx.quadraticCurveTo(X(0.286), Y(0.330), X(0.266), Y(0.428));
-      ctx.stroke();
-
-      // two strands escaping the tie — started inside the hair so they read
-      // as loose hair and not as antennae
-      ctx.strokeStyle = rgba('#2A2620', 0.8);
-      ctx.lineWidth = Math.max(1.2, W * 0.0055);
-      [[0.236, 0.302, 0.176, 0.258, 0.186, 0.202],
-       [0.244, 0.416, 0.190, 0.470, 0.184, 0.536]].forEach(function (s) {
+      // the ··· menu
+      ctx.fillStyle = '#8C877D';
+      for (let i = 0; i < 3; i++) {
         ctx.beginPath();
-        ctx.moveTo(X(s[0]), Y(s[1]));
-        ctx.quadraticCurveTo(X(s[2]), Y(s[3]), X(s[4]), Y(s[5]));
-        ctx.stroke();
-      });
+        ctx.arc(cx0 + cw - W * 0.075 + i * W * 0.032, avY, W * 0.011, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
-      ctx.restore();
+      /* ── the photo ── */
+      const px = cx0, py = cy0 + H * 0.115, pw = cw, ph = H * 0.545;
+      drawSunrisePhoto(ctx, px, py, pw, ph);
 
-      // a painter's signature mark, bottom right
-      ctx.fillStyle = rgba('#22201C', 0.4);
-      ctx.font = '500 ' + Math.round(W * 0.045) + 'px Fraunces, Georgia, serif';
-      ctx.textAlign = 'right';
-      ctx.fillText(FRIEND_NAME, X(0.93), Y(0.955));
+      /* ── action row ── */
+      const ay = py + ph + H * 0.055;
+      const ax = cx0 + W * 0.07;
+      ctx.strokeStyle = '#22201C';
+      ctx.lineWidth = Math.max(2, W * 0.011);
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+
+      // heart — filled, because it's already been liked
+      const hs = W * 0.05;
+      ctx.beginPath();
+      ctx.moveTo(ax, ay + hs * 0.32);
+      ctx.bezierCurveTo(ax - hs * 0.1, ay - hs * 0.34, ax - hs * 0.98, ay + hs * 0.06, ax, ay + hs * 0.86);
+      ctx.bezierCurveTo(ax + hs * 0.98, ay + hs * 0.06, ax + hs * 0.1, ay - hs * 0.34, ax, ay + hs * 0.32);
+      ctx.closePath();
+      ctx.fillStyle = '#E8552D';
+      ctx.fill();
+
+      // speech bubble
+      const bx = ax + W * 0.135;
+      ctx.beginPath();
+      ctx.arc(bx, ay + hs * 0.3, hs * 0.62, 0.35 * Math.PI, 0.15 * Math.PI, false);
+      ctx.lineTo(bx - hs * 0.5, ay + hs * 1.06);
+      ctx.closePath();
+      ctx.stroke();
+
+      // paper plane
+      const sx = ax + W * 0.265;
+      ctx.beginPath();
+      ctx.moveTo(sx - hs * 0.62, ay + hs * 0.3);
+      ctx.lineTo(sx + hs * 0.66, ay - hs * 0.28);
+      ctx.lineTo(sx + hs * 0.1, ay + hs * 0.96);
+      ctx.lineTo(sx - hs * 0.02, ay + hs * 0.36);
+      ctx.closePath();
+      ctx.stroke();
+
+      // bookmark, right side
+      const mx = cx0 + cw - W * 0.085;
+      ctx.beginPath();
+      ctx.moveTo(mx - hs * 0.42, ay - hs * 0.28);
+      ctx.lineTo(mx + hs * 0.42, ay - hs * 0.28);
+      ctx.lineTo(mx + hs * 0.42, ay + hs * 0.92);
+      ctx.lineTo(mx, ay + hs * 0.42);
+      ctx.lineTo(mx - hs * 0.42, ay + hs * 0.92);
+      ctx.closePath();
+      ctx.stroke();
+
+      /* ── liked by · caption · timestamp ── */
+      let ty = ay + H * 0.078;
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#22201C';
+      ctx.font = '600 ' + Math.round(W * 0.046) + 'px "Instrument Sans", system-ui, sans-serif';
+      ctx.fillText(IG_LIKED_BY, ax, ty);
+
+      ty += H * 0.05;
+      const cap = (captionText || IG_CAPTION_PLACEHOLDER).trim();
+      ctx.font = '600 ' + Math.round(W * 0.046) + 'px "Instrument Sans", system-ui, sans-serif';
+      const handleW = ctx.measureText(IG_HANDLE).width;
+      ctx.fillText(IG_HANDLE, ax, ty);
+      ctx.font = '400 ' + Math.round(W * 0.046) + 'px "Instrument Sans", system-ui, sans-serif';
+      ctx.fillStyle = '#3A3630';
+      // one line, ellipsised — the card stays tidy however much she types
+      let text = cap;
+      const room = cw - (ax - cx0) * 2 - handleW - W * 0.03;
+      if (ctx.measureText(text).width > room) {
+        while (text.length > 1 && ctx.measureText(text + '…').width > room) text = text.slice(0, -1);
+        text += '…';
+      }
+      ctx.fillText(text, ax + handleW + W * 0.022, ty);
+
+      ty += H * 0.045;
+      ctx.fillStyle = '#8C877D';
+      ctx.font = '400 ' + Math.round(W * 0.034) + 'px "Instrument Sans", system-ui, sans-serif';
+      ctx.fillText(IG_TIMESTAMP, ax, ty);
+
+      ctx.textBaseline = 'alphabetic';
+    }
+
+    /** Rounded rect, for browsers without ctx.roundRect. */
+    function roundRect(ctx, x, y, w, h, r) {
+      if (ctx.roundRect) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); return; }
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
     }
 
     /** Grey, mottled, slightly vignetted — decades of dust. */
@@ -904,7 +1315,7 @@
         onComplete: function () {
           lineEl.textContent = text;
           gsap.fromTo(lineEl, { opacity: 0, y: 10 },
-            { opacity: 1, y: 0, duration: 0.85, ease: 'power2.out' });
+            { opacity: 1, y: 0, duration: 0.85, ease: EASE_SOFT });
         }
       });
     }
@@ -932,15 +1343,15 @@
       // sweep the last specks away
       if (HAS_GSAP && !REDUCED) {
         gsap.to(dCanvas, {
-          opacity: 0, duration: 0.9, ease: 'power2.out',
+          opacity: 0, duration: 0.9, ease: EASE_SOFT,
           onComplete: function () { dCtx.clearRect(0, 0, W, H); }
         });
         // and let the colour bloom
         gsap.fromTo(pCanvas,
           { filter: 'saturate(1) brightness(1)' },
-          { filter: 'saturate(1.28) brightness(1.06)', duration: 1.1, ease: 'power2.out',
+          { filter: 'saturate(1.28) brightness(1.06)', duration: 1.1, ease: EASE_SOFT,
             yoyo: true, repeat: 1, repeatDelay: 0.5 });
-        gsap.fromTo(frame, { scale: 1 }, { scale: 1.025, duration: 0.7, ease: 'power2.out', yoyo: true, repeat: 1 });
+        gsap.fromTo(frame, { scale: 1 }, { scale: 1.025, duration: 0.7, ease: EASE_SOFT, yoyo: true, repeat: 1 });
         setTimeout(function () { burstFrom(frame, 60); }, 350);
       } else {
         dCanvas.style.opacity = '0';
@@ -951,11 +1362,31 @@
       if (meter) meter.textContent = '100%';
       if (hintEl) hintEl.classList.add('is-gone');
 
+      // now she can put her own words on it
+      const capRow = $('#captionRow');
+      const capInput = $('#captionInput');
+      const capLabel = $('#captionLabel');
+      if (capRow && capRow.hidden) {
+        capRow.hidden = false;
+        if (capLabel) capLabel.textContent = IG_CAPTION_LABEL;
+        if (capInput) {
+          capInput.placeholder = IG_CAPTION_PLACEHOLDER;
+          capInput.addEventListener('input', function () {
+            captionText = capInput.value;
+            drawPortrait(pCtx, W, H);      // the post updates as she types
+          });
+        }
+        if (HAS_GSAP && !REDUCED) {
+          gsap.fromTo(capRow, { opacity: 0, y: 12 },
+            { opacity: 1, y: 0, duration: D_MED, delay: 0.35, ease: EASE_OUT });
+        }
+      }
+
       if (actions) {
         actions.hidden = false;
         if (HAS_GSAP && !REDUCED) {
           gsap.fromTo(actions, { opacity: 0, y: 14 },
-            { opacity: 1, y: 0, duration: 0.7, delay: 0.5, ease: 'power2.out' });
+            { opacity: 1, y: 0, duration: 0.7, delay: 0.5, ease: EASE_SOFT });
         }
       }
     }
@@ -1073,14 +1504,66 @@
   })();
 
 
-  /* ═══════════════ 9 · GAME 2 — COLOUR MIX LAB ═══════════════ */
+  /* ─────────── 8b · THE SHARED PALETTE (mix → colour in) ─────────── */
+
+  /**
+   * The colours she can paint with: the base pigments, plus every blend she
+   * discovers in the Mix half. This is the hinge between §4a and §4b — what
+   * she makes on the left is what she paints with on the right.
+   */
+  const Palette = (function () {
+    const strip = $('#paletteStrip');
+    const list = [];
+    let selected = 0;
+
+    function render() {
+      if (!strip) return;
+      strip.innerHTML = '';
+      list.forEach(function (c, i) {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'swatch-btn';
+        b.style.setProperty('--pig', c.hex);
+        b.setAttribute('aria-pressed', i === selected ? 'true' : 'false');
+        b.setAttribute('aria-label', c.name + (c.memory ? ' — ' + c.memory : ''));
+        if (c.memory) b.title = c.name + ' — ' + c.memory;
+        b.addEventListener('click', function () {
+          selected = i;
+          render();
+        });
+        li.appendChild(b);
+        strip.appendChild(li);
+      });
+    }
+
+    return {
+      init: function () {
+        if (list.length) return;
+        WELLS.filter(function (w) { return w.id !== 'ink'; })
+             .forEach(function (w) { list.push({ hex: w.hex, name: w.name }); });
+        render();
+      },
+      /** A blend she just discovered joins the palette. */
+      add: function (hex, name, memory) {
+        if (list.some(function (c) { return c.hex.toLowerCase() === hex.toLowerCase(); })) return null;
+        list.push({ hex: hex, name: name, memory: memory });
+        selected = list.length - 1;      // hand her the colour she just made
+        render();
+        return strip ? strip.lastElementChild : null;
+      },
+      current: function () { return (list[selected] || list[0] || { hex: PIGMENTS[0] }).hex; }
+    };
+  })();
+
+
+  /* ═══════════════ 9 · GAME 2 — COLOUR & COLORING LAB ═══════════════ */
 
   const Mix = (function () {
     const bowl = $('#mixBowl');
     const wellsEl = $('#wells');
     const memoryEl = $('#mixMemory');
-    const stripEl = $('#paletteStrip');
-    const meter = $('#mixMeter');
+        const meter = $('#mixMeter');
     const emptyEl = $('#bowlEmpty');
     const actions = $('#mixActions');
     const rinseBtn = $('#rinseBowl');
@@ -1214,7 +1697,7 @@
         onComplete: function () {
           memoryEl.textContent = text;
           gsap.fromTo(memoryEl, { opacity: 0, y: 10 },
-            { opacity: 1, y: 0, duration: 0.75, ease: 'power2.out' });
+            { opacity: 1, y: 0, duration: 0.75, ease: EASE_SOFT });
         }
       });
     }
@@ -1237,17 +1720,14 @@
           y: (b.top + b.height / 2) - (a.top + a.height / 2),
           duration: 0.52, ease: 'power2.in'
         })
-        .to(blob, { scale: 2.1, opacity: 0, duration: 0.3, ease: 'power2.out' }, '-=0.06')
+        .to(blob, { scale: 2.1, opacity: 0, duration: 0.3, ease: EASE_SOFT }, '-=0.06')
         .fromTo(blob, { scaleX: 1 }, { scaleX: 1.35, duration: 0.18, yoyo: true, repeat: 1 }, 0.2);
     }
 
+    /** A discovered blend plinks onto the palette — and is hers to paint with. */
     function plink(blend) {
-      const li = document.createElement('li');
-      li.style.setProperty('--pig', blend.resultColor);
-      li.title = blend.name + ' — ' + blend.memory;
-      li.setAttribute('aria-label', blend.name + ': ' + blend.memory);
-      stripEl.appendChild(li);
-      if (HAS_GSAP && !REDUCED) {
+      const li = Palette.add(blend.resultColor, blend.name, blend.memory);
+      if (li && HAS_GSAP && !REDUCED) {
         gsap.fromTo(li, { scale: 0, y: -16, rotate: -12 },
           { scale: 1, y: 0, rotate: 0, duration: 0.55, ease: 'back.out(2.4)' });
       }
@@ -1357,9 +1837,42 @@
       }, share);
     }
 
+    /* the two halves: mix on the left, colour in on the right */
+    function initTabs() {
+      const tabMix = $('#tabMix'), tabColor = $('#tabColor');
+      const panelMix = $('#panelMix'), panelColor = $('#panelColor');
+      const footMix = $('#footMix'), footColor = $('#footColor');
+      const stripLabel = $('#stripLabel');
+      if (!tabMix || !tabColor) return;
+
+      function go(which) {
+        const colouring = which === 'color';
+        tabMix.classList.toggle('is-on', !colouring);
+        tabColor.classList.toggle('is-on', colouring);
+        tabMix.setAttribute('aria-selected', String(!colouring));
+        tabColor.setAttribute('aria-selected', String(colouring));
+        panelMix.hidden = colouring;
+        panelColor.hidden = !colouring;
+        footMix.hidden = colouring;
+        footColor.hidden = !colouring;
+        if (stripLabel) stripLabel.textContent = colouring ? COLOR_HINT : COLOR_FIRST_HINT;
+        if (colouring) Colouring.enter();
+        const panel = colouring ? panelColor : panelMix;
+        if (HAS_GSAP && !REDUCED) {
+          gsap.fromTo(panel, { opacity: 0, y: 10 },
+            { opacity: 1, y: 0, duration: D_FAST, ease: EASE_OUT });
+        }
+      }
+      tabMix.addEventListener('click', function () { go('mix'); });
+      tabColor.addEventListener('click', function () { go('color'); });
+      if (stripLabel) stripLabel.textContent = COLOR_FIRST_HINT;
+    }
+    initTabs();
+
     return {
       enter: function () {
         size();
+        Palette.init();
         if (meter) meter.textContent = collected.length + '/' + COLOR_BLENDS.length;
         if (emptyEl) emptyEl.textContent = MIX_EMPTY_HINT;
         active = true;
@@ -1375,6 +1888,188 @@
         setTimeout(stop, 600);
       }
     };
+  })();
+
+
+  /* ─────────── 9b · COLOURING IN THE SKETCHES (§4b) ─────────── */
+
+  /** Rasterise an inline SVG so it can be drawn onto an export canvas. */
+  function svgToImage(svgEl, w, h, prep) {
+    return new Promise(function (resolve, reject) {
+      const clone = svgEl.cloneNode(true);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.removeAttribute('style');
+      clone.removeAttribute('class');
+      clone.setAttribute('width', w);
+      clone.setAttribute('height', h);
+      if (prep) prep(clone);
+      const str = new XMLSerializer().serializeToString(clone);
+      const img = new Image();
+      img.onload = function () { resolve(img); };
+      img.onerror = reject;
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(str);
+    });
+  }
+
+  const Colouring = (function () {
+    const frame = $('#sketchFrame');
+    const nameEl = $('#sketchName');
+    const nav = $('#sketchNav');
+    const source = $('#sketchSource');
+    if (!frame || !source) return { enter: function () {} };
+
+    const PAPER = '#FCFAF6';
+    const sheets = [];      // { svg, name, history: [] }
+    let idx = 0;
+    let ready = false;
+
+    function build() {
+      if (ready) return;
+      ready = true;
+
+      $$('[data-sketch]', source).forEach(function (proto) {
+        const svg = proto.cloneNode(true);
+        svg.removeAttribute('data-sketch');
+        const sheet = { svg: svg, name: svg.getAttribute('data-name') || 'a drawing', history: [] };
+
+        // the line-art look is applied as attributes, not CSS, so the saved
+        // PNG looks exactly like what she sees
+        $$('.rg', svg).forEach(function (rg, i) {
+          rg.setAttribute('fill', PAPER);
+          rg.setAttribute('stroke', '#22201C');
+          rg.setAttribute('stroke-width', '2.4');
+          rg.setAttribute('stroke-linejoin', 'round');
+          rg.setAttribute('tabindex', '0');
+          rg.setAttribute('role', 'button');
+          rg.setAttribute('aria-label', 'Fill area ' + (i + 1));
+
+          const fill = function () {
+            const next = Palette.current();
+            const prev = rg.getAttribute('fill');
+            if (prev === next) return;
+            sheet.history.push({ el: rg, prev: prev });
+            rg.setAttribute('fill', next);
+            markProgress();
+          };
+          rg.addEventListener('click', fill);
+          rg.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fill(); }
+          });
+        });
+
+        // detail marks get their look as attributes too, so the saved PNG
+        // carries the faces and stems the stylesheet is drawing on screen
+        $$('.ln', svg).forEach(function (el) {
+          el.setAttribute('fill', 'none');
+          el.setAttribute('stroke', '#22201C');
+          el.setAttribute('stroke-width', '2.1');
+          el.setAttribute('stroke-linecap', 'round');
+          el.setAttribute('stroke-linejoin', 'round');
+        });
+        $$('.dt', svg).forEach(function (el) {
+          el.setAttribute('fill', '#22201C');
+          el.setAttribute('stroke', 'none');
+        });
+
+        sheets.push(sheet);
+      });
+
+      // the little numbered chooser
+      if (nav) {
+        nav.innerHTML = '';
+        sheets.forEach(function (s, i) {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.textContent = i + 1;
+          b.setAttribute('aria-label', s.name);
+          b.addEventListener('click', function () { show(i); });
+          nav.appendChild(b);
+        });
+      }
+      show(0);
+    }
+
+    function markProgress() {
+      if (!nav) return;
+      sheets.forEach(function (s, i) {
+        const touched = s.history.length > 0;
+        const b = nav.children[i];
+        if (b) b.classList.toggle('is-done', touched);
+      });
+    }
+
+    function show(i) {
+      idx = clamp(i, 0, sheets.length - 1);
+      const sheet = sheets[idx];
+      frame.innerHTML = '';
+      frame.appendChild(sheet.svg);
+      if (nameEl) nameEl.textContent = sheet.name;
+      if (nav) {
+        $$('button', nav).forEach(function (b, n) {
+          b.setAttribute('aria-current', n === idx ? 'true' : 'false');
+        });
+      }
+      if (HAS_GSAP && !REDUCED) {
+        gsap.fromTo(sheet.svg, { opacity: 0, scale: 0.98 },
+          { opacity: 1, scale: 1, duration: D_FAST, ease: EASE_OUT });
+      }
+      markProgress();
+    }
+
+    function undo() {
+      const sheet = sheets[idx];
+      if (!sheet || !sheet.history.length) return;
+      const last = sheet.history.pop();
+      last.el.setAttribute('fill', last.prev);
+      markProgress();
+    }
+
+    function reset() {
+      const sheet = sheets[idx];
+      if (!sheet) return;
+      $$('.rg', sheet.svg).forEach(function (rg) { rg.setAttribute('fill', PAPER); });
+      sheet.history.length = 0;
+      markProgress();
+    }
+
+    function save(share) {
+      const sheet = sheets[idx];
+      if (!sheet) return;
+      saveOrShare({
+        file: 'mansi-' + sheet.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.png',
+        eyebrow: sheet.name,
+        label: sheet.name,
+        line: SKETCH_CARD_LINE,
+        draw: async function (ctx, box) {
+          let img;
+          try { img = await svgToImage(sheet.svg, 760, 760); } catch (e) { return; }
+          const side = Math.min(box.w, box.h);
+          const x = box.x + (box.w - side) / 2;
+          const y = box.y + (box.h - side) / 2;
+          ctx.save();
+          ctx.fillStyle = PAPER;
+          ctx.fillRect(x, y, side, side);
+          ctx.drawImage(img, x, y, side, side);
+          ctx.strokeStyle = 'rgba(34,32,28,0.2)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(x - 10, y - 10, side + 20, side + 20);
+          ctx.restore();
+        }
+      }, share);
+    }
+
+    const undoBtn = $('#undoFill');
+    const resetBtn = $('#resetSketch');
+    if (undoBtn) undoBtn.addEventListener('click', undo);
+    if (resetBtn) resetBtn.addEventListener('click', reset);
+    $$('[data-save="sketch"]').forEach(function (b) {
+      b.addEventListener('click', function () { save(false); });
+    });
+    $$('[data-share="sketch"]').forEach(function (b) {
+      b.addEventListener('click', function () { save(true); });
+    });
+
+    return { enter: build };
   })();
 
 
@@ -1447,7 +2142,7 @@
       gsap.to(g._clipRect, {
         attr: { width: g._fullW },
         duration: 0.95,
-        ease: 'power2.inOut'
+        ease: EASE_IO
       });
     }
 
@@ -1695,7 +2390,7 @@
       if (HAS_GSAP && !REDUCED) {
         gsap.fromTo(stage.children,
           { opacity: 0, y: 12 },
-          { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: 'power2.out' });
+          { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: EASE_SOFT });
       }
     }
 
@@ -1718,7 +2413,7 @@
         actions.hidden = false;
         if (HAS_GSAP && !REDUCED) {
           gsap.fromTo(actions, { opacity: 0, y: 14 },
-            { opacity: 1, y: 0, duration: 0.7, delay: 0.35, ease: 'power2.out' });
+            { opacity: 1, y: 0, duration: 0.7, delay: 0.35, ease: EASE_SOFT });
         }
       }
       burstFrom(svg, 70);
@@ -1751,6 +2446,19 @@
       }
       if (rays) {
         gsap.to(rays, { rotation: 360, svgOrigin: '322 72', duration: 52, repeat: -1, ease: 'none' });
+      }
+      // the butterfly doesn't hold still either
+      const flutter = $('#sceneButterfly', svg);
+      if (flutter) {
+        gsap.to(flutter, {
+          keyframes: [
+            { x: -14, y: -22, rotation: -8, duration: 3.2 },
+            { x: -30, y: -6, rotation: 6, duration: 3.2 },
+            { x: -8, y: -30, rotation: -4, duration: 3.2 },
+            { x: 0, y: 0, rotation: 0, duration: 3.2 }
+          ],
+          svgOrigin: '330 232', ease: 'sine.inOut', repeat: -1
+        });
       }
     }
 

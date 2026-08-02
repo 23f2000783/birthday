@@ -22,6 +22,14 @@
 
 <body>
 
+<!-- The living background: pigment blooms drifting under everything -->
+<div class="living-bg" aria-hidden="true">
+  <span class="living-bg__blob living-bg__blob--1"></span>
+  <span class="living-bg__blob living-bg__blob--2"></span>
+  <span class="living-bg__blob living-bg__blob--3"></span>
+  <span class="living-bg__blob living-bg__blob--4"></span>
+</div>
+
 <!-- Paper grain, fixed over everything -->
 <div class="grain" aria-hidden="true"></div>
 
@@ -210,6 +218,12 @@
 
     <p class="sign-done" id="signDone" aria-live="polite"></p>
 
+    <!-- the keepsake: the assembled painting + her signature, as a PNG -->
+    <div class="actions-row" id="saveCanvasWrap" hidden>
+      <button type="button" class="btn btn--solid" id="saveCanvas">Save our canvas</button>
+      <button type="button" class="btn btn--ghost" id="shareCanvas" hidden>Share</button>
+    </div>
+
     <!-- unlocked by signing: the door through to studio.html -->
     <div class="door" id="studioDoor" hidden>
       <div class="door__frame">
@@ -233,6 +247,8 @@
   <p class="margin-note" id="footerNote">made for Mansi · with paint and pixels</p>
   <a class="footer__top" href="#top">back to the blank canvas ↑</a>
 </footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.0/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.0/dist/ScrollTrigger.min.js"></script>
