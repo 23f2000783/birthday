@@ -1,4 +1,4 @@
-# Build Spec — "For Mansi" · An Interactive Friendship Day Canvas
+# Build Spec — "For Her" · An Interactive Friendship Day Canvas
 
 > This is the canonical brief for this project. **Keep it updated whenever the build
 > changes.**
@@ -18,7 +18,7 @@
 
 ## 0. One-line thesis
 
-**A blank canvas that Mansi fills as she scrolls — she doesn't realize she's painting
+**A blank canvas that She fills as she scrolls — she doesn't realize she's painting
 the whole page until the end, when she looks back and sees the finished piece was her
 doing all along.** The site is an argument, in interaction form, against her habit of
 underestimating herself.
@@ -29,13 +29,12 @@ Every design and motion decision must serve that thesis. Cut anything that doesn
 
 ## 1. Who it's for (drives tone + copy)
 
-Mansi is a painter — genuinely skilled. She is positive, quietly spiritual (believes
+She is a painter — genuinely skilled. She is positive, quietly spiritual (believes
 someone is watching over everyone), gentle with animals, the eldest child carrying
 responsibility for her home. Her one flaw is aimed only at herself: she overthinks her
 own capability and doubts her ceiling. The site should make her feel *seen* and end on
 "you can fly higher than you think."
 
-Recipient: **Mansi.** From: **Nishant.** They met around **2014 (Class 6)**.
 
 ---
 
@@ -91,7 +90,7 @@ Faint paper grain over everything (fixed SVG noise, ~4–6% opacity). This one d
 ## 4. Sections (each is a beat in the scroll-painted story)
 
 ### Section 1 — The blank canvas (hero)
-- Opens nearly empty: a faint **pencil-sketch outline** of "Happy Friendship Day, Mansi."
+- Opens nearly empty: a faint **pencil-sketch outline** of "Happy Friendship Day, She."
 - On load, an SVG **stroke-draw** animation paints the letters in with ink (animate
   `stroke-dashoffset`). Fraunces, large.
 - A **brush-glow cursor trail** follows the mouse/finger across the whole page (soft
@@ -106,14 +105,14 @@ Faint paper grain over everything (fixed SVG noise, ~4–6% opacity). This one d
 - A few honest one-line stats beside it in Space Mono (e.g. `1 canvas, infinite range`).
 
 ### Section 3 — "Pick up the brush" (THE SIGNATURE — real paint tool)
-- A genuinely working **Canvas 2D paint tool**. Mansi can draw with cursor/finger.
+- A genuinely working **Canvas 2D paint tool**. She can draw with cursor/finger.
 - Palette of the four pigments + brush size; strokes bloom with slight softness/texture.
 - Faint centered guide text `draw something 🖌️` that clears on first stroke.
 - After she draws, a gentle line appears: `that's going in the museum.`
 - Include a subtle **Clear** control. Must feel great on touch (pointer events, no lag).
 - Ambient trail is suppressed inside this canvas so painting feels precise.
 
-### Section 4 — "The Mansi Museum" (quiz reframed as a personality reveal)
+### Section 4 — "The She Museum" (quiz reframed as a personality reveal)
 Museum-placard styled cards that **pin onto a gallery wall** as she scrolls (GSAP).
 It is NOT trivia — there are **no wrong answers**. Every choice is celebrated, and every
 path leads to the same warm conclusion. Gen-Z, playful, modern voice.
@@ -124,7 +123,7 @@ Questions + options (all options are "correct" / affirming):
 2. **"Your art gets 3 likes instead of 300. You:"**
    - post it anyway, it's mine · already onto the next one · save it for me, not the feed · shrug, keep painting
 3. **"Someone says 'you should paint more like [famous artist].' You:"**
-   - nah, I paint like Mansi · take the note, keep my soul · smile and do my own thing · already unmatched, thanks
+   - nah, I paint like She · take the note, keep my soul · smile and do my own thing · already unmatched, thanks
 4. **"The realest flex?"**
    - liking my own work before anyone else does · finishing the hard piece · being gentle when it's hard · showing up for everyone
 5. **"Who's watching over all of this?"**
@@ -145,7 +144,7 @@ Trigger a small pigment-confetti burst on reaching the final placard.
 
 #### 5a. Letter copy (use verbatim)
 ```
-Mansi,
+She,
 
 Somewhere along the way you became the person everyone leans on — the eldest,
 the responsible one, the one who holds it together when things get hard. You do it
@@ -157,7 +156,7 @@ thought about whether it was good enough. And here's what you keep missing: it a
 is. The care you pour in shows. The work is beautiful because you are the one who made
 it, and you make things the way only you can.
 
-The only person who ever doubts Mansi is Mansi. You wonder if you're enough, if you can,
+The only person who ever doubts her is herself only. You wonder if you're enough, if you can,
 if there's a ceiling. There isn't. There never was. The limit you're so sure you're
 standing under — you've been above it this whole time.
 
@@ -173,14 +172,14 @@ Happy Friendship Day. 🎨
 - Invite her to **sign** — a small canvas where she draws her initials.
 - On signing, a final flourish of **pigment-confetti** and a soft line:
   `signed, and hung where it belongs.`
-- Footer: `made for Mansi · with paint and pixels`.
+- Footer: `made for She · with paint and pixels`.
 
 ---
 
 ## 5. Motion language (the "directed" part — this is what wins)
 
 - **Lenis** smooth scroll everywhere; page glides.
-- **GSAP ScrollTrigger** drives every reveal so **Mansi controls the pace**: the hero
+- **GSAP ScrollTrigger** drives every reveal so **She controls the pace**: the hero
   stroke-draw, the counter smear-wipe, museum placards pinning to the wall, the final
   painting assembly.
 - Micro-interactions: brush-glow cursor; paint-splat ripple on button clicks; placards
@@ -194,7 +193,7 @@ Happy Friendship Day. 🎨
 ## 6. Editable config (put at top of the JS, clearly commented)
 
 ```js
-const FRIEND_NAME = "Mansi";
+const FRIEND_NAME = "She";
 const YOUR_NAME   = "Nishant";
 const MEET_DATE   = "2014-06-01"; // approx Class 6 start — adjust to taste
 // LETTER_TEXT: exact copy from §5a
@@ -331,7 +330,7 @@ letter text, pigments. No other file needs editing.
 
 ## 10. Concept & emotional arc
 
-After Mansi finishes the main experience (signs the canvas in Section 6), a hidden door
+After She finishes the main experience (signs the canvas in Section 6), a hidden door
 appears: **"The Studio."** It's a second gift she unlocks, not just more scrolling.
 
 Inside are three gentle games. The order is deliberate and emotional:
@@ -346,7 +345,7 @@ Inside are three gentle games. The order is deliberate and emotional:
 **Arc: find yourself → feel your colors → return to childhood joy.**
 
 No timers, no scores, no fail states. Gentle over challenging. Every game ends with a
-downloadable image (subtly marked *for Mansi · from Nishant*) she can save and share
+downloadable image (subtly marked *for She · from Nishant*) she can save and share
 however she likes.
 
 ---
@@ -379,7 +378,7 @@ however she likes.
 
 ## 13. Game 1 — Restoration Room
 
-**Mechanic:** A canvas shows a faded, dust-greyed version of Mansi's stylized portrait.
+**Mechanic:** A canvas shows a faded, dust-greyed version of She's stylized portrait.
 She brushes/taps to remove the dust layer; color is revealed underneath where she brushes.
 As coverage crosses thresholds, short restoration lines fade in one at a time.
 
@@ -406,7 +405,7 @@ silhouette later (**clearly comment the swap point**).
 6. *(at 100%)* "This is you. Just as you always were. 🤍"
 
 **Finish:** at full reveal, the portrait gently saturates/blooms; offer **"Save this"**
-(downloads the restored portrait with the final line + *for Mansi · from Nishant*).
+(downloads the restored portrait with the final line + *for She · from Nishant*).
 Reduced-motion: skip bloom, keep reveal + lines.
 
 ---
@@ -434,8 +433,8 @@ personal palette strip at the bottom.
 darkening), then snap to nearest defined blend within a tolerance to trigger its memory.
 Make blobs feel gooey/soft (radial gradients, slight wobble).
 
-**Finish:** when she's collected several, assemble them into a tidy **"Mansi's Palette"**
-card she can download (swatches + their memory phrases + *for Mansi · from Nishant*).
+**Finish:** when she's collected several, assemble them into a tidy **"She's Palette"**
+card she can download (swatches + their memory phrases + *for She · from Nishant*).
 
 ---
 
@@ -459,7 +458,7 @@ be individually revealed/coloured and the finished scene can do a light idle ani
 On completion (Fraunces): *"There it is — the joy you started with."*
 
 **Finish:** the completed, gently animating scene; **"Save this"** downloads a static frame
-with the line + *for Mansi · from Nishant*.
+with the line + *for She · from Nishant*.
 
 ---
 
@@ -468,8 +467,8 @@ with the line + *for Mansi · from Nishant*.
 No backend. For every "Save this":
 
 - Compose the result on an offscreen canvas at ~**1080×1350** (nice for phone/IG).
-- Add a small footer mark: `for Mansi · from Nishant · Happy Friendship Day`.
-- `canvas.toBlob()` → object URL → programmatic `<a download="mansi-studio.png">`.
+- Add a small footer mark: `for She · from Nishant · Happy Friendship Day`.
+- `canvas.toBlob()` → object URL → programmatic `<a download="She-studio.png">`.
 - Optional: a "Share" button that, if `navigator.share` + files are supported, opens the
   native share sheet with the image; otherwise falls back to download.
   (**Progressive enhancement only — download is the guaranteed path.**)
@@ -479,12 +478,12 @@ No backend. For every "Save this":
 ## 17. Editable config (top of the studio JS, commented)
 
 ```js
-const FRIEND_NAME = "Mansi";
+const FRIEND_NAME = "She";
 const YOUR_NAME   = "Nishant";
 // RESTORATION_LINES: the 6 lines from §13
 // COLOR_BLENDS: the table from §14 (mix -> resultColor -> memory)
 // PAINT_REGIONS: region list + final scene art reference (§15)
-// EXPORT_MARK: "for Mansi · from Nishant · Happy Friendship Day"
+// EXPORT_MARK: "for She · from Nishant · Happy Friendship Day"
 // PORTRAIT_SWAP: clearly marked line to replace silhouette with a real photo-traced one
 // SCENE_SWAP: clearly marked line to replace the girl+dog art
 ```
@@ -662,7 +661,7 @@ The cameo silhouette is **replaced**. Under the dust is now a stylized Instagram
 
 - `drawSunrisePhoto()` — sunrise sky, two mountain ranges, the sun clearing the ridge,
   and **her from behind**: slim, hair worn open past the shoulders, backlit.
-- `drawPortrait()` — the post chrome around it: gradient avatar ring, `mansi`,
+- `drawPortrait()` — the post chrome around it: gradient avatar ring, `She`,
   location, ··· menu, action row (filled heart, comment, share, bookmark),
   **"Liked by nishant and others"**, the caption line, and a timestamp.
 
@@ -726,9 +725,9 @@ load, and it cannot start without her tapping the toggle.
 
 Living background present, animating, correctly behind content. Main site: full run to
 signing → `our-canvas.png` (476 KB). Studio: dust brushed to 100% → caption typed →
-`mansi-restored.png` (388 KB); two blends mixed → palette grew 5→7 swatches → switched
+`She-restored.png` (388 KB); two blends mixed → palette grew 5→7 swatches → switched
 to colouring → 5 regions filled → undo verified (5→4) → switched to drawing 6 → saved
-`mansi-go-fly.png` (214 KB); collection tray showed both pieces with correct labels;
+`She-go-fly.png` (214 KB); collection tray showed both pieces with correct labels;
 sound toggled on and off. No horizontal overflow. **Zero console or page errors.**
 
 ### v2 fixes found by testing
