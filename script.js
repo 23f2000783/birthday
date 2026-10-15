@@ -1,5 +1,5 @@
 /* ============================================================================
- *  FOR MANSI — an interactive Friendship Day canvas
+ *  FOR MJ — an interactive Friendship Day canvas
  *  ---------------------------------------------------------------------------
  *  Blocks:  1 CONFIG · 2 utils · 3 boot · 4 smooth scroll · 5 ambient canvas
  *           6 hero · 7 counter · 8 paint tool · 9 museum · 10 painting
@@ -14,7 +14,7 @@
    * ═══════════════════════════════════════════════════════════════════════ */
 
   /** Who this is for. */
-  const FRIEND_NAME = "Mansi";
+  const FRIEND_NAME = "MJ";
   /** Who it's from. */
   const YOUR_NAME = "Nishant";
   /** When you two met — drives the live day-count. Format: YYYY-MM-DD. */
@@ -239,7 +239,7 @@ Happy Friendship Day. 🎨`;
   const gsap = window.gsap;
   const ST = window.ScrollTrigger;
 
-  /** Everything Mansi makes on the way down, collected for the final painting. */
+  /** Everything MJ makes on the way down, collected for the final painting. */
   const Art = {
     trail: [],       // normalised pointer samples {x,y,c,r}
     strokes: [],     // her paint-tool strokes
