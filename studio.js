@@ -1,5 +1,5 @@
 /* ============================================================================
- *  THE STUDIO — three gentle rooms, for Mansi
+ *  THE STUDIO — three gentle rooms, for MJ
  *  ---------------------------------------------------------------------------
  *  Blocks:  1 CONFIG · 2 utils · 3 boot · 4 ambient · 5 export · 6 router
  *           7 entrance · 8 Restoration Room · 9 Colour Mix Lab
@@ -17,7 +17,7 @@
    *      PORTRAIT_SWAP (below) and SCENE_SWAP (in studio.html).
    * ═══════════════════════════════════════════════════════════════════════ */
 
-  const FRIEND_NAME = "Mansi";
+  const FRIEND_NAME = "MJ";
   const YOUR_NAME   = "Nishant";
 
   /** Stamped into the corner of every saved image. */
@@ -485,7 +485,7 @@
     }
     if (!blob) { toast("couldn't build the image — try again"); return; }
 
-    const filename = opts.file || 'mansi-studio.png';
+    const filename = opts.file || 'MJ-studio.png';
     // everything she saves joins the collection, however she saves it
     Collection.add(blob, opts.label || opts.eyebrow || 'a piece', filename);
 
@@ -1470,7 +1470,7 @@
 
     function save(share) {
       saveOrShare({
-        file: 'mansi-restored.png',
+        file: 'MJ-restored.png',
         eyebrow: 'restoration room',
         line: RESTORATION_LINES[RESTORATION_LINES.length - 1].text,
         draw: function (ctx, box) {
@@ -1799,7 +1799,7 @@
 
     function save(share) {
       saveOrShare({
-        file: 'mansi-palette.png',
+        file: 'MJ-palette.png',
         eyebrow: MIX_CARD_TITLE,
         line: MIX_CARD_LINE,
         draw: function (ctx, box) {
@@ -2036,7 +2036,7 @@
       const sheet = sheets[idx];
       if (!sheet) return;
       saveOrShare({
-        file: 'mansi-' + sheet.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.png',
+        file: 'MJ-' + sheet.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.png',
         eyebrow: sheet.name,
         label: sheet.name,
         line: SKETCH_CARD_LINE,
@@ -2495,7 +2495,7 @@
 
     function save(share) {
       saveOrShare({
-        file: 'mansi-and-the-dog.png',
+        file: 'MJ-and-the-dog.png',
         eyebrow: 'paint-by-scroll',
         line: PAINT_DONE,
         draw: async function (ctx, box) {
